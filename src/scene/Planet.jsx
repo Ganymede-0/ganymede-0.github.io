@@ -1,0 +1,110 @@
+import { useRef, useMemo, useEffect } from 'react'
+import { useFrame } from '@react-three/fiber'
+import { Html } from '@react-three/drei'
+import * as THREE from 'three'
+import AtmosphereShell from './AtmosphereShell'
+import { orbitClock, bodyRegistry } from './orbitClock'
+import { textureForPattern } from './proceduralTextures'
+import { useNavigationStore } from '../state/navigationStore'
+
+export default function Planet({ project }) {
+  const orbitRef = useRef()   // rotated about Y to carry the body around
+  const bodyRef = useRef()    // the planet itself (spin + hover scale)
+  const groupRef = useRef()   // world-space anchor the camera targets
+
+  const focusBody = useNavigationStore((s) => s.focusBody)
+  const setHovered = useNavigationStore((s) => s.setHovered)
+  const hoveredId = useNavigationStore((s) => s.hoveredId)
+  const activeId = useNavigationStore((s) => s.activeId)
+  const view = useNavigationStore((s) => s.view)
+
+  const isHovered = hoveredId === project.id
+  const isActive = activeId === project.id
+  const dimmed = activeId !== null && !isActive
+
+  const map = useMemo(
+    () => textureForPattern(project.pattern, project.color, project.emissive),
+    [project.pattern, project.color, project.emissive]
+  )
+
+  useEffect(() => {
+    if (groupRef.current) bodyRegistry.set(project.id, groupRef.current)
+    return () => bodyRegistry.delete(project.id)
+  }, [project.id])
+
+  useFrame((_, delta) => {
+    const angle = project.startAngle + orbitClock.elapsed * project.orbitSpeed
+    if (orbitRef.current) orbitRef.current.rotation.y = angle
+    if (bodyRef.current) {
+      bodyRef.current.rotation.y += delta * 0.12 * Math.max(orbitClock.scale, 0.15)
+      // A small, quick swell on hover — enough to confirm the target is live
+      const target = isHovered || isActive ? 1.12 : 1
+      bodyRef.current.scale.lerp(new THREE.Vector3(target, target, target), 0.12)
+    }
+  })
+
+  const interactive = view !== 'transitioning'
+
+  return (
+    <group ref={orbitRef} rotation={[project.orbitTilt, 0, project.orbitTilt * 0.5]}>
+      <group ref={groupRef} position={[project.orbitRadius, 0, 0]}>
+        <group
+          ref={bodyRef}
+          onClick={(e) => {
+            e.stopPropagation()
+            if (interactive) focusBody(project.id)
+          }}
+          onPointerOver={(e) => {
+            e.stopPropagation()
+            if (interactive) {
+              setHovered(project.id)
+              document.body.style.cursor = 'pointer'
+            }
+          }}
+          onPointerOut={() => {
+            setHovered(null)
+            document.body.style.cursor = 'auto'
+          }}
+        >
+          <mesh scale={project.size}>
+            <sphereGeometry args={[1, 64, 64]} />
+            <meshStandardMaterial
+              map={map}
+              color={new THREE.Color(project.color)}
+              emissive={new THREE.Color(project.emissive)}
+              emissiveIntensity={dimmed ? 0.15 : 0.4}
+              roughness={0.7}
+              metalness={0.05}
+              transparent
+              opacity={dimmed ? 0.45 : 1}
+            />
+          </mesh>
+
+          <group scale={project.size}>
+            <AtmosphereShell
+              color={project.color}
+              scale={1.16}
+              intensity={dimmed ? 0.25 : isHovered ? 1.3 : 0.85}
+            />
+          </group>
+        </group>
+
+        {/* Label. Hidden during flight and while a panel is open so the
+            readable UI never competes with floating 3D text. */}
+        {view === 'overview' && (
+          <Html
+            position={[0, project.size + 0.75, 0]}
+            center
+            distanceFactor={16}
+            style={{ pointerEvents: 'none', userSelect: 'none' }}
+          >
+            <div className={`body-label ${isHovered ? 'is-hovered' : ''}`}>
+              <span className="body-label__code mono">{project.missionCode}</span>
+              <span className="body-label__name">{project.name}</span>
+            </div>
+          </Html>
+        )}
+      </group>
+    </group>
+  )
+}
