@@ -72,11 +72,12 @@ export default function Planet({ project }) {
               map={map}
               color={new THREE.Color(project.color)}
               emissive={new THREE.Color(project.emissive)}
-              emissiveIntensity={dimmed ? 0.15 : 0.4}
-              roughness={0.7}
-              metalness={0.05}
+              emissiveIntensity={dimmed ? 0.25 : 0.6}
+              roughness={0.62}
+              metalness={0.15}
+              envMapIntensity={0.9}
               transparent
-              opacity={dimmed ? 0.45 : 1}
+              opacity={dimmed ? 0.5 : 1}
             />
           </mesh>
 

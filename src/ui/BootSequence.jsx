@@ -32,8 +32,14 @@ export default function BootSequence() {
   }, [reducedMotion])
 
   useEffect(() => {
-    const ready = !active && progress >= 100
-    const minimum = reducedMotion ? 200 : 1400
+    // This scene loads zero async assets — every texture is a procedural
+    // CanvasTexture — so drei's useProgress never climbs to 100 and `active`
+    // never flips. We can't wait on a signal that will never fire. Instead we
+    // dismiss on a fixed minimum hold (the scene compiles well inside it), and
+    // treat any real loader progress as a bonus that can only end things
+    // sooner. The result: the boot cover is guaranteed to lift.
+    const ready = !active && (progress >= 100 || progress === 0)
+    const minimum = reducedMotion ? 200 : 1600
     const timer = setTimeout(() => {
       if (!ready) return
       const el = rootRef.current
@@ -60,7 +66,9 @@ export default function BootSequence() {
           ))}
         </ul>
         <div className="boot__bar" aria-hidden="true">
-          <span style={{ width: `${Math.min(progress, 100)}%` }} />
+          {/* Real loader progress is meaningless here (no async assets), so the
+              fill is time-driven via CSS to mirror the compile hold. */}
+          <span className="boot__fill" />
         </div>
       </div>
     </div>

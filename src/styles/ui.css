@@ -15,11 +15,40 @@
   display: block;
 }
 
+/* Cinematic foreground, two layers over the GL canvas. Both purely
+   decorative and non-interactive; together they sell the "instrument behind
+   glass" read and unify the whole frame.
+     ::before — a faint engineering grid that glows (screen blend).
+     ::after  — an edge vignette that darkens (normal alpha). */
+.app::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+  background:
+    linear-gradient(rgba(140, 170, 220, 0.05) 1px, transparent 1px) 0 0 / 100% 46px,
+    linear-gradient(90deg, rgba(140, 170, 220, 0.05) 1px, transparent 1px) 0 0 / 46px 100%;
+  mix-blend-mode: screen;
+  opacity: 0.5;
+  mask-image: radial-gradient(120% 100% at 50% 45%, #000 30%, transparent 80%);
+}
+
+.app::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+  background: radial-gradient(125% 105% at 50% 48%, transparent 55%, rgba(2, 4, 8, 0.82) 100%);
+}
+
 /* Overlay is click-through; individual children opt back in. */
 .overlay {
   position: absolute;
   inset: 0;
   pointer-events: none;
+  z-index: 6;
 }
 
 .hud {
@@ -31,15 +60,53 @@
 .hud--identity {
   top: 2rem;
   left: 2.25rem;
-  max-width: 22rem;
+  max-width: 23rem;
+  padding-left: 0.9rem;
+  border-left: 1px solid var(--color-panel-line);
+}
+
+/* A live "system online" tick above the name — small, but it's the detail that
+   makes the whole surface read as an operational terminal. */
+.hud--identity::before {
+  content: 'SYS · ONLINE';
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.56rem;
+  letter-spacing: 0.34em;
+  color: var(--color-cyan);
+  margin-bottom: 0.6rem;
+  padding-left: 1rem;
+  position: relative;
+}
+
+.hud--identity::after {
+  content: '';
+  position: absolute;
+  left: 0.9rem;
+  top: 0.28rem;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-cyan);
+  box-shadow: var(--glow-cyan);
+  animation: pulse 2.4s var(--ease-out) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
 }
 
 .identity__name {
   font-family: var(--font-display);
-  font-size: 1.6rem;
+  font-size: 1.72rem;
   font-weight: 600;
-  letter-spacing: -0.015em;
-  margin: 0 0 0.35rem;
+  letter-spacing: -0.02em;
+  margin: 0 0 0.4rem;
+  background: linear-gradient(180deg, #ffffff 0%, #b9c4d8 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .identity__role,
@@ -80,16 +147,18 @@
 }
 
 .index__item {
+  position: relative;
   display: flex;
   align-items: baseline;
   gap: 0.7rem;
   background: none;
   border: 0;
   border-left: 2px solid transparent;
-  padding: 0.32rem 0.6rem;
+  padding: 0.34rem 0.6rem;
   color: var(--color-slate);
   cursor: pointer;
-  transition: color 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+  transition: color 0.2s var(--ease-out), border-color 0.2s var(--ease-out),
+    background 0.2s var(--ease-out), padding-left 0.2s var(--ease-out);
   width: 100%;
   text-align: left;
 }
@@ -99,7 +168,17 @@
 .index__item.is-active {
   color: var(--color-starlight);
   border-left-color: var(--accent);
-  background: rgba(255, 255, 255, 0.03);
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--accent) 14%, transparent),
+    transparent 70%
+  );
+  padding-left: 0.85rem;
+}
+
+/* Accent glow bleeding off the active marker */
+.index__item.is-active {
+  box-shadow: -6px 0 18px -10px var(--accent);
 }
 
 .index__code {
@@ -157,7 +236,20 @@
   align-items: center;
   gap: 0.15rem;
   white-space: nowrap;
-  transition: opacity 0.2s ease;
+  padding: 0.3rem 0.7rem;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  background: rgba(8, 12, 22, 0.5);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  transition: opacity 0.2s ease, border-color 0.2s ease, background 0.2s ease,
+    transform 0.2s var(--ease-out);
+}
+
+.body-label.is-hovered {
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(12, 18, 32, 0.72);
+  transform: translateY(-2px);
 }
 
 .body-label__code {
@@ -191,14 +283,31 @@
   right: 0;
   height: 100%;
   width: min(34rem, 42vw);
-  background: rgba(9, 13, 24, 0.94);
-  backdrop-filter: blur(14px);
+  background:
+    linear-gradient(180deg, rgba(16, 22, 42, 0.55), transparent 40%),
+    rgba(8, 12, 22, 0.92);
+  backdrop-filter: blur(18px) saturate(1.1);
+  -webkit-backdrop-filter: blur(18px) saturate(1.1);
   border-left: 1px solid var(--color-panel-line);
+  box-shadow: -40px 0 80px -40px rgba(0, 0, 0, 0.8),
+    inset 1px 0 0 rgba(255, 255, 255, 0.04);
   padding: 2.4rem 2.4rem 1.5rem;
   overflow-y: auto;
   pointer-events: auto;
   display: flex;
   flex-direction: column;
+}
+
+/* A thin accent seam running down the panel's inner edge, tinted to the body. */
+.mission-panel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 2px;
+  height: 100%;
+  background: linear-gradient(180deg, transparent, var(--accent) 30%, var(--accent) 70%, transparent);
+  opacity: 0.6;
 }
 
 .orbit-rule {
@@ -228,11 +337,15 @@
 
 .mission-panel__title {
   font-family: var(--font-display);
-  font-size: 2.4rem;
+  font-size: 2.5rem;
   font-weight: 600;
-  letter-spacing: -0.03em;
-  line-height: 1.05;
+  letter-spacing: -0.035em;
+  line-height: 1.02;
   margin: 0 0 0.5rem;
+  background: linear-gradient(178deg, #ffffff 0%, #c3ccdd 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .mission-panel__tagline {
@@ -395,7 +508,8 @@
 .boot {
   position: absolute;
   inset: 0;
-  background: var(--color-void);
+  background:
+    radial-gradient(120% 90% at 50% 45%, #0a0f1e 0%, #05070d 70%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -403,14 +517,31 @@
 }
 
 .boot__inner {
-  width: min(26rem, 80vw);
+  width: min(28rem, 82vw);
+  padding: 1.6rem 1.8rem;
+  border: 1px solid var(--color-panel-line);
+  background: rgba(8, 12, 22, 0.5);
+  position: relative;
 }
+
+/* Corner registration ticks — the frame detail that reads as instrumentation */
+.boot__inner::before,
+.boot__inner::after {
+  content: '';
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border: 1px solid var(--color-amber);
+}
+.boot__inner::before { top: -1px; left: -1px; border-right: 0; border-bottom: 0; }
+.boot__inner::after { bottom: -1px; right: -1px; border-left: 0; border-top: 0; }
 
 .boot__mark {
   font-size: 0.72rem;
   letter-spacing: 0.42em;
   color: var(--color-amber);
   margin: 0 0 1.6rem;
+  text-shadow: var(--glow-amber);
 }
 
 .boot__lines {
@@ -430,21 +561,48 @@
   animation: bootline 0.35s ease both;
 }
 
+/* Prefix each status line with a resolved-check glyph */
+.boot__lines li::before {
+  content: '›';
+  color: var(--color-cyan);
+  margin-right: 0.6rem;
+}
+
+/* Blinking cursor on the last emitted line */
+.boot__lines li:last-child::after {
+  content: '_';
+  margin-left: 0.3rem;
+  color: var(--color-amber);
+  animation: blink 1s steps(1) infinite;
+}
+
+@keyframes blink {
+  50% { opacity: 0; }
+}
+
 @keyframes bootline {
   from { opacity: 0; transform: translateY(4px); }
   to   { opacity: 1; transform: none; }
 }
 
 .boot__bar {
-  height: 1px;
+  height: 2px;
   background: var(--color-panel-line);
+  overflow: hidden;
 }
 
-.boot__bar span {
+.boot__fill {
   display: block;
   height: 100%;
-  background: var(--color-amber);
-  transition: width 0.3s ease;
+  width: 0;
+  background: linear-gradient(90deg, var(--color-amber), var(--color-cyan));
+  box-shadow: var(--glow-amber);
+  animation: bootfill 1.6s var(--ease-out) forwards;
+}
+
+@keyframes bootfill {
+  from { width: 0; }
+  to   { width: 100%; }
 }
 
 /* --- Responsive ---------------------------------------------------------- */

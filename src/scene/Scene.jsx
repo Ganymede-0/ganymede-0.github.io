@@ -1,7 +1,15 @@
 import { Suspense, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
-import { AdaptiveDpr, PerformanceMonitor, Preload } from '@react-three/drei'
-import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing'
+import { AdaptiveDpr, PerformanceMonitor, Preload, Sparkles } from '@react-three/drei'
+import {
+  EffectComposer,
+  Bloom,
+  Vignette,
+  ChromaticAberration,
+  ToneMapping,
+} from '@react-three/postprocessing'
+import { ToneMappingMode } from 'postprocessing'
+import { Vector2 } from 'three'
 
 import Starfield from './Starfield'
 import JovianCore from './JovianCore'
@@ -9,6 +17,7 @@ import Planet from './Planet'
 import Station from './Station'
 import OrbitPath from './OrbitPath'
 import CameraRig from './CameraRig'
+import Lighting from './Lighting'
 import { projects, CATEGORY } from '../data/projects'
 import { useNavigationStore } from '../state/navigationStore'
 import { useReducedMotion } from './useReducedMotion'
@@ -44,12 +53,23 @@ export default function Scene() {
       <AdaptiveDpr pixelated />
 
       <color attach="background" args={['#05070d']} />
-      <fog attach="fog" args={['#05070d', 40, 130]} />
-      <ambientLight intensity={0.16} />
+      <fog attach="fog" args={['#060912', 55, 150]} />
 
       <Suspense fallback={null}>
+        <Lighting />
         <Starfield />
         <JovianCore />
+
+        {/* Fine drifting particulate — reads as backscatter / ionised dust and
+            gives the empty space between orbits a sense of depth and scale. */}
+        <Sparkles
+          count={90}
+          scale={[46, 20, 46]}
+          size={2.4}
+          speed={0.25}
+          opacity={0.5}
+          color="#8fb6ff"
+        />
 
         {projects.map((project) => (
           <OrbitPath
@@ -75,14 +95,23 @@ export default function Scene() {
       <CameraRig />
 
       {effectsOn && !reducedMotion && (
-        <EffectComposer multisampling={0}>
+        <EffectComposer multisampling={0} enableNormalPass={false}>
           <Bloom
-            intensity={0.55}
-            luminanceThreshold={0.32}
-            luminanceSmoothing={0.85}
+            intensity={0.85}
+            luminanceThreshold={0.22}
+            luminanceSmoothing={0.9}
             mipmapBlur
+            radius={0.7}
           />
-          <Vignette offset={0.28} darkness={0.72} />
+          <ChromaticAberration
+            offset={new Vector2(0.0006, 0.0009)}
+            radialModulation={false}
+          />
+          <Vignette offset={0.22} darkness={0.78} />
+          {/* Explicit tone-map pass: postprocessing owns tone mapping once a
+              composer is present, so we map ACES here to keep highlights from
+              clipping to flat white after bloom. */}
+          <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
         </EffectComposer>
       )}
     </Canvas>

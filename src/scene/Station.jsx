@@ -70,7 +70,10 @@ export default function Station({ project }) {
             <meshStandardMaterial
               color="#c6ccd8"
               metalness={0.85}
-              roughness={0.35}
+              roughness={0.32}
+              envMapIntensity={1.4}
+              emissive={new THREE.Color('#20293a')}
+              emissiveIntensity={0.5}
               transparent
               opacity={opacity}
             />

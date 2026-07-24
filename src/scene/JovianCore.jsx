@@ -30,16 +30,19 @@ export default function JovianCore() {
 
   return (
     <group>
-      {/* The star at the heart of the system — lights every project */}
-      <pointLight position={[0, 0, 0]} intensity={220} distance={90} decay={2} color="#ffd9a8" />
+      {/* The star at the heart of the system — the warm source every project
+          is lit from. Tuned to sit *under* the key/fill rig in Lighting.jsx so
+          the near orbits aren't blown out while the far ones stay reachable. */}
+      <pointLight position={[0, 0, 0]} intensity={130} distance={120} decay={2} color="#ffd6a0" />
 
       <mesh ref={jupiterRef}>
         <sphereGeometry args={[2.2, 64, 64]} />
         <meshStandardMaterial
           map={map}
-          emissive={new THREE.Color('#8a5c30')}
-          emissiveIntensity={0.55}
-          roughness={0.85}
+          color="#e8b06a"
+          emissive={new THREE.Color('#c8763a')}
+          emissiveIntensity={0.9}
+          roughness={0.82}
           metalness={0}
         />
       </mesh>

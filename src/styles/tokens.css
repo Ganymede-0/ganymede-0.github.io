@@ -21,6 +21,12 @@
   /* --- Layout ------------------------------------------------------------ */
   --panel-radius: 2px;
   --hud-gap: 1.25rem;
+
+  /* --- Elevation / glow -------------------------------------------------- */
+  --glow-cyan: 0 0 24px -6px rgba(111, 231, 220, 0.55);
+  --glow-amber: 0 0 24px -6px rgba(217, 142, 74, 0.55);
+  --hairline: rgba(255, 255, 255, 0.08);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 * {
@@ -33,10 +39,16 @@ html, body, #root {
 }
 
 body {
-  background: var(--color-void);
+  /* A faint radial lift at the core keeps the frame from reading as a flat
+     black rectangle even before the GL context paints. */
+  background:
+    radial-gradient(120% 90% at 50% 42%, #0b1120 0%, #070a12 45%, #04060b 100%);
   color: var(--color-starlight);
   font-family: var(--font-body);
   overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 button {
