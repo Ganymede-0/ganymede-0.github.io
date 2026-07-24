@@ -22,16 +22,5 @@ export default defineConfig({
     outDir: 'dist',
     sourcemap: false,
     chunkSizeWarningLimit: 900,
-    rollupOptions: {
-      output: {
-        // three.js barely changes between deploys; your copy will change
-        // constantly. Splitting them means a returning visitor only
-        // re-downloads the small chunk.
-        manualChunks: {
-          three: ['three'],
-          r3f: ['@react-three/fiber', '@react-three/drei', '@react-three/postprocessing'],
-        },
-      },
-    },
   },
 })
