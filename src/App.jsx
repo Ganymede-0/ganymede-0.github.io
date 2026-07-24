@@ -5,14 +5,11 @@ import MissionPanel from './MissionPanel';
 
 export default function App() {
   return (
-    
-      {/* 3D Environment */}
-      
-        
-      
-      
-      {/* 2D UI Overlay */}
-      
-    
+    <div style={{ width: '100vw', height: '100vh', backgroundColor: '#050505', overflow: 'hidden' }}>
+      <Canvas camera={{ position: [0, 0, 15], fov: 45 }}>
+        <CameraRig />
+      </Canvas>
+      <MissionPanel />
+    </div>
   );
 }
