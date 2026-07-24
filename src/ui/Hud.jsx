@@ -17,7 +17,7 @@ export default function Hud() {
         <p className="identity__role mono">
           Applied AI · computer vision · 3D volumetric imaging
         </p>
-        <p className="identity__location mono">Dammam, Saudi Arabia</p>
+        <p className="identity__location mono">Khobar, Saudi Arabia</p>
       </header>
 
       <nav className="hud hud--index" aria-label="Mission index">

@@ -32,6 +32,7 @@ export const projects = [
     color: '#6fe7dc',
     emissive: '#1c7f78',
     pattern: 'bands',
+    surface: 'medical', // bioluminescent cellular tissue + sweeping scan laser
 
     summary:
       'A full-stack pipeline that takes a raw micro-CT scan and returns a validated, ' +
@@ -72,6 +73,7 @@ export const projects = [
     color: '#d98e4a',
     emissive: '#8a5c30',
     pattern: 'storm',
+    surface: 'industrial', // forged metal, amber grid, molten fracture seams
 
     summary:
       'An industrial predictive maintenance pipeline that forecasts equipment failure and ' +
@@ -107,6 +109,7 @@ export const projects = [
     color: '#c9a45c',
     emissive: '#6b562a',
     pattern: 'grid',
+    surface: 'data', // topographic contours + holographic data matrix
 
     summary:
       'A regression-driven analytics dashboard that tracks and predicts real estate prices ' +

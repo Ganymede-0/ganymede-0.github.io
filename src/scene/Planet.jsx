@@ -4,7 +4,7 @@ import { Html } from '@react-three/drei'
 import * as THREE from 'three'
 import AtmosphereShell from './AtmosphereShell'
 import { orbitClock, bodyRegistry } from './orbitClock'
-import { textureForPattern } from './proceduralTextures'
+import { createPlanetMaterial } from './planetMaterials'
 import { useNavigationStore } from '../state/navigationStore'
 
 export default function Planet({ project }) {
@@ -22,17 +22,17 @@ export default function Planet({ project }) {
   const isActive = activeId === project.id
   const dimmed = activeId !== null && !isActive
 
-  const map = useMemo(
-    () => textureForPattern(project.pattern, project.color, project.emissive),
-    [project.pattern, project.color, project.emissive]
-  )
+  // The body's bespoke surface shader. Built once per project and disposed on
+  // unmount so hot-reloads and remounts don't leak GPU programs.
+  const material = useMemo(() => createPlanetMaterial(project), [project.id])
+  useEffect(() => () => material.dispose(), [material])
 
   useEffect(() => {
     if (groupRef.current) bodyRegistry.set(project.id, groupRef.current)
     return () => bodyRegistry.delete(project.id)
   }, [project.id])
 
-  useFrame((_, delta) => {
+  useFrame((state, delta) => {
     const angle = project.startAngle + orbitClock.elapsed * project.orbitSpeed
     if (orbitRef.current) orbitRef.current.rotation.y = angle
     if (bodyRef.current) {
@@ -41,6 +41,12 @@ export default function Planet({ project }) {
       const target = isHovered || isActive ? 1.12 : 1
       bodyRef.current.scale.lerp(new THREE.Vector3(target, target, target), 0.12)
     }
+    // Drive the surface animation on a continuous clock so scan lines / grids /
+    // energy keep breathing even when the orbital system is parked at a body.
+    const u = material.userData.uniforms
+    u.uTime.value = state.clock.elapsedTime
+    u.uEmitStrength.value = dimmed ? 0.35 : isHovered || isActive ? 1.6 : 1.0
+    material.opacity = dimmed ? 0.5 : 1
   })
 
   const interactive = view !== 'transitioning'
@@ -66,19 +72,8 @@ export default function Planet({ project }) {
             document.body.style.cursor = 'auto'
           }}
         >
-          <mesh scale={project.size}>
-            <sphereGeometry args={[1, 64, 64]} />
-            <meshStandardMaterial
-              map={map}
-              color={new THREE.Color(project.color)}
-              emissive={new THREE.Color(project.emissive)}
-              emissiveIntensity={dimmed ? 0.25 : 0.6}
-              roughness={0.62}
-              metalness={0.15}
-              envMapIntensity={0.9}
-              transparent
-              opacity={dimmed ? 0.5 : 1}
-            />
+          <mesh scale={project.size} material={material}>
+            <sphereGeometry args={[1, 128, 128]} />
           </mesh>
 
           <group scale={project.size}>

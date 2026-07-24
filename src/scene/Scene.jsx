@@ -12,6 +12,7 @@ import { ToneMappingMode } from 'postprocessing'
 import { Vector2 } from 'three'
 
 import Starfield from './Starfield'
+import Nebula from './Nebula'
 import JovianCore from './JovianCore'
 import Planet from './Planet'
 import Station from './Station'
@@ -57,6 +58,7 @@ export default function Scene() {
 
       <Suspense fallback={null}>
         <Lighting />
+        <Nebula />
         <Starfield />
         <JovianCore />
 

@@ -14,7 +14,13 @@
   --color-slate-dim: #545d70;   /* tertiary / disabled */
 
   /* --- Type -------------------------------------------------------------- */
+  /* Four-role system:
+       display — human headers, titles, buttons (striking, geometric)
+       tech    — instrument micro-labels, codes, status (wide, technical)
+       mono    — dense data readouts and numeric values
+       body    — reading material / case-study prose (legible sans) */
   --font-display: 'Space Grotesk', 'Segoe UI', sans-serif;
+  --font-tech: 'Orbitron', 'Space Grotesk', sans-serif;
   --font-body: 'Inter', 'Segoe UI', sans-serif;
   --font-mono: 'JetBrains Mono', 'SFMono-Regular', Consolas, monospace;
 

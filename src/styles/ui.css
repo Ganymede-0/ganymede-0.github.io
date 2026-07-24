@@ -65,38 +65,6 @@
   border-left: 1px solid var(--color-panel-line);
 }
 
-/* A live "system online" tick above the name — small, but it's the detail that
-   makes the whole surface read as an operational terminal. */
-.hud--identity::before {
-  content: 'SYS · ONLINE';
-  display: inline-block;
-  font-family: var(--font-mono);
-  font-size: 0.56rem;
-  letter-spacing: 0.34em;
-  color: var(--color-cyan);
-  margin-bottom: 0.6rem;
-  padding-left: 1rem;
-  position: relative;
-}
-
-.hud--identity::after {
-  content: '';
-  position: absolute;
-  left: 0.9rem;
-  top: 0.28rem;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--color-cyan);
-  box-shadow: var(--glow-cyan);
-  animation: pulse 2.4s var(--ease-out) infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.25; }
-}
-
 .identity__name {
   font-family: var(--font-display);
   font-size: 1.72rem;
@@ -112,10 +80,17 @@
 .identity__role,
 .identity__location {
   margin: 0;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   color: var(--color-slate);
   text-transform: uppercase;
   letter-spacing: 0.09em;
+}
+
+.identity__role {
+  font-family: var(--font-tech);
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  color: var(--color-cyan);
 }
 
 .identity__location {
@@ -130,9 +105,10 @@
 }
 
 .index__caption {
-  font-size: 0.62rem;
+  font-family: var(--font-tech);
+  font-size: 0.58rem;
   text-transform: uppercase;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.22em;
   color: var(--color-slate-dim);
   margin: 0 0 0.6rem;
 }
@@ -182,9 +158,10 @@
 }
 
 .index__code {
-  font-size: 0.62rem;
+  font-family: var(--font-tech);
+  font-size: 0.56rem;
   color: var(--color-slate-dim);
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
 }
 
 .index__name {
@@ -253,8 +230,9 @@
 }
 
 .body-label__code {
-  font-size: 0.55rem;
-  letter-spacing: 0.16em;
+  font-family: var(--font-tech);
+  font-size: 0.5rem;
+  letter-spacing: 0.18em;
   color: var(--color-slate-dim);
 }
 
@@ -321,9 +299,10 @@
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  font-size: 0.62rem;
+  font-family: var(--font-tech);
+  font-size: 0.58rem;
   text-transform: uppercase;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.2em;
   color: var(--color-slate-dim);
   margin-bottom: 0.85rem;
 }
@@ -389,9 +368,10 @@
 }
 
 .readout__label {
-  font-size: 0.68rem;
+  font-family: var(--font-tech);
+  font-size: 0.58rem;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
   color: var(--color-slate);
 }
 
@@ -456,18 +436,22 @@
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
-  padding: 0.55rem 0.95rem;
+  padding: 0.6rem 1rem;
   border: 1px solid var(--accent);
   color: var(--accent);
   text-decoration: none;
-  font-size: 0.8rem;
-  transition: background 0.18s ease, color 0.18s ease;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 0.82rem;
+  letter-spacing: 0.01em;
+  transition: background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
 }
 
 .link-button:hover,
 .link-button:focus-visible {
   background: var(--accent);
   color: var(--color-void);
+  box-shadow: 0 0 22px -6px var(--accent);
 }
 
 .mission-panel__footer {
@@ -483,7 +467,9 @@
   background: none;
   border: 0;
   color: var(--color-slate);
-  font-size: 0.82rem;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 0.84rem;
   cursor: pointer;
   padding: 0.4rem 0;
   border-bottom: 1px solid transparent;
@@ -537,8 +523,10 @@
 .boot__inner::after { bottom: -1px; right: -1px; border-left: 0; border-top: 0; }
 
 .boot__mark {
-  font-size: 0.72rem;
-  letter-spacing: 0.42em;
+  font-family: var(--font-tech);
+  font-weight: 700;
+  font-size: 0.9rem;
+  letter-spacing: 0.36em;
   color: var(--color-amber);
   margin: 0 0 1.6rem;
   text-shadow: var(--glow-amber);
