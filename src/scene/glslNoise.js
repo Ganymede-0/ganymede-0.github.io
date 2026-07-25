@@ -48,11 +48,14 @@ float snoise(vec3 v){
   return 42.0 * dot(m*m, vec4(dot(p0,x0), dot(p1,x1), dot(p2,x2), dot(p3,x3)));
 }
 
-// 4-octave fractal brownian motion.
+// 3-octave fractal brownian motion. Three octaves is the sweet spot here: the
+// bump pass samples this 4x per fragment, so every octave is paid for many
+// times over. The surface detail that a 4th octave would add is instead carried
+// by the animated emissive layers, which are far cheaper.
 float fbm(vec3 p){
   float f = 0.0;
   float a = 0.5;
-  for(int i = 0; i < 4; i++){
+  for(int i = 0; i < 3; i++){
     f += a * snoise(p);
     p *= 2.03;
     a *= 0.5;

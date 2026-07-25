@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react'
 
 // ---------------------------------------------------------------------------
 // GitHub Pages base path
+
 // ---------------------------------------------------------------------------
 // Two ways to host this on GitHub Pages:
 //

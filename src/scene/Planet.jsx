@@ -3,9 +3,20 @@ import { useFrame } from '@react-three/fiber'
 import { Html } from '@react-three/drei'
 import * as THREE from 'three'
 import AtmosphereShell from './AtmosphereShell'
+import HoloScan from './HoloScan'
 import { orbitClock, bodyRegistry } from './orbitClock'
 import { createPlanetMaterial } from './planetMaterials'
 import { useNavigationStore } from '../state/navigationStore'
+
+// Module-scoped scratch vector — reused every frame so the hover-swell lerp
+// doesn't allocate a fresh Vector3 (and feed the GC) 60x/second per planet.
+const _scale = new THREE.Vector3()
+
+// ONE sphere shared by every planet. The bodies differ entirely in their
+// shaders, so there is no reason to upload the same 96×96 vertex buffer to the
+// GPU once per project. Created lazily and never disposed — it lives as long
+// as the page does.
+const SPHERE = new THREE.SphereGeometry(1, 96, 96)
 
 export default function Planet({ project }) {
   const orbitRef = useRef()   // rotated about Y to carry the body around
@@ -39,7 +50,7 @@ export default function Planet({ project }) {
       bodyRef.current.rotation.y += delta * 0.12 * Math.max(orbitClock.scale, 0.15)
       // A small, quick swell on hover — enough to confirm the target is live
       const target = isHovered || isActive ? 1.12 : 1
-      bodyRef.current.scale.lerp(new THREE.Vector3(target, target, target), 0.12)
+      bodyRef.current.scale.lerp(_scale.setScalar(target), 0.12)
     }
     // Drive the surface animation on a continuous clock so scan lines / grids /
     // energy keep breathing even when the orbital system is parked at a body.
@@ -72,9 +83,7 @@ export default function Planet({ project }) {
             document.body.style.cursor = 'auto'
           }}
         >
-          <mesh scale={project.size} material={material}>
-            <sphereGeometry args={[1, 128, 128]} />
-          </mesh>
+          <mesh scale={project.size} material={material} geometry={SPHERE} />
 
           <group scale={project.size}>
             <AtmosphereShell
@@ -84,6 +93,13 @@ export default function Planet({ project }) {
             />
           </group>
         </group>
+
+        {/* Telemetry scan rig — materializes once the camera has parked. */}
+        {isActive && view === 'focus' && (
+          <group scale={project.size}>
+            <HoloScan color={project.color} missionCode={project.missionCode} />
+          </group>
+        )}
 
         {/* Label. Hidden during flight and while a panel is open so the
             readable UI never competes with floating 3D text. */}

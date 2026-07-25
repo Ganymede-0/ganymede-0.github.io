@@ -18,14 +18,18 @@ the exact file, the exact variable, and the safe range of values.
 src/
 ├── data/
 │   └── projects.js          ← ★ ALL content: names, copy, metrics, orbits, links
+├── data/
+│   ├── projects.js          ← ★ ALL orbital-body content (see §2–4)
+│   └── cv.js                ← ★ ALL résumé content (nav + CV panel)
 ├── scene/                     (the 3D system)
 │   ├── Scene.jsx            ← canvas, camera defaults, post‑processing stack
 │   ├── Lighting.jsx        ← light rig + reflection environment
-│   ├── CameraRig.jsx       ← camera flights + orbit controls
-│   ├── JovianCore.jsx      ← the central Jupiter + Ganymede
+│   ├── CameraRig.jsx       ← camera flights + orbit controls + left-framing
+│   ├── Sun.jsx             ← the central Sun (your identity) + corona
 │   ├── Planet.jsx          ← how a project body is built & animated
 │   ├── Station.jsx         ← how an experience/“station” body is built
 │   ├── planetMaterials.js  ← ★ the bespoke per‑planet surface shaders
+│   ├── proceduralTextures.js (canvas textures, incl. the Sun surface)
 │   ├── glslNoise.js         (shared noise functions — rarely edited)
 │   ├── Nebula.jsx           (deep‑space coloured gas backdrop)
 │   ├── Starfield.jsx        (two‑layer star field)
@@ -34,13 +38,16 @@ src/
 │   └── orbitClock.js        (shared animation clock — do not edit)
 ├── ui/                        (the 2D interface over the canvas)
 │   ├── Hud.jsx             ← ★ name, role, location, contact links
+│   ├── CvNav.jsx            (bottom-left CV jump navigation)
+│   ├── CvPanel.jsx          (the résumé drawer)
 │   ├── MissionPanel.jsx     (the case‑study side panel)
-│   └── BootSequence.jsx     (the intro/boot overlay)
+│   ├── CursorHud.jsx        (the terminal reticle cursor)
+│   └── StarFallback.jsx     (Suspense fallback — a single breathing star)
 ├── styles/
 │   ├── tokens.css          ← ★ colours, fonts, design tokens
 │   └── ui.css               (all interface styling)
 └── state/
-    └── navigationStore.js   (which body is selected — no edits needed)
+    └── navigationStore.js   (selected body + CV open state — rarely edited)
 ```
 
 ★ = the files you will actually edit for content and branding.
@@ -180,6 +187,23 @@ Open [`src/ui/Hud.jsx`](../src/ui/Hud.jsx):
 Edit the text / `href` values directly. The intro overlay lines live in
 [`src/ui/BootSequence.jsx`](../src/ui/BootSequence.jsx) in the `LINES` array.
 
+### The résumé content (bottom-left CV nav + CV panel)
+All of it lives in [`src/data/cv.js`](../src/data/cv.js):
+- `identity` — name, headline, location, languages, contact links.
+- `cvSections` — the ordered sections. **This array’s order IS the order of the
+  bottom-left nav and the panel.** Each section has an `id`, a `code` (the `00`
+  tag), a `label` (what the nav shows), and a `kind` that picks how it renders:
+  `prose` · `timeline` · `projects` · `stack` · `list`.
+- To link a flagship system to its orbiting planet, give its item a
+  `projectId` matching a planet `id` in `projects.js` — that adds the
+  “View in orbit” button which flies the camera to it.
+
+### The Sun (central identity body)
+[`src/scene/Sun.jsx`](../src/scene/Sun.jsx) renders a texture-driven photosphere +
+corona. It ships with a procedural granulation texture (zero binary assets). To
+swap in a **photographic** sun, drop a JPG in `public/textures/` and follow the
+`useTexture` note at the top of that file (one-line change).
+
 ---
 
 ## 6. Camera & motion tuning
@@ -209,6 +233,12 @@ const camPos = bodyPos.clone()
 - Zoom limits & auto‑rotate: the `<OrbitControls>` props at the bottom
   (`minDistance`, `maxDistance`, `autoRotateSpeed`).
 
+**Left-framing balance:** the focused planet is pushed to the left so it
+balances the right-side panel. The strength is the `0.42` factor in
+`target.add(right.multiplyScalar(halfW * 0.42))` — `0` centres the body, larger
+values push it further left. It’s derived from the panel covering the right
+~42vw; if you change the panel width, match this number.
+
 ### Orbit speed of the whole system
 Each body’s `orbitSpeed` is in `projects.js` (§3). The global spin‑up/spin‑down
 on focus is handled automatically by `orbitClock` — no edit needed.
@@ -225,13 +255,23 @@ on focus is handled automatically by `orbitClock` — no edit needed.
 --color-starlight: #f2f4f8;  /* main text */
 ```
 
-### Typography (4‑role system) — `tokens.css`
+### Typography — `tokens.css`
+**Manrope everywhere** (variable, 200–800). One family; the hierarchy comes from
+the weight axis and letter-spacing, not from switching faces:
 ```css
---font-display: 'Space Grotesk', …;  /* headers, titles, buttons */
---font-tech:    'Orbitron', …;       /* instrument labels, codes, status */
---font-mono:    'JetBrains Mono', …; /* numeric data readouts */
---font-body:    'Inter', …;          /* reading / case‑study prose */
+--font-display: 'Manrope', …;  /* all four roles resolve to Manrope */
+--font-body:    'Manrope', …;
+--font-tech:    'Manrope', …;
+--font-mono:    'Manrope', …;
+
+--w-xbold: 800;  /* hero names, section titles */
+--w-bold:  700;  /* buttons, sub-heads */
+--w-semi:  600;  /* instrument labels, codes, status */
+--w-med:   500;  --w-reg: 400;  --w-light: 300;  /* reading material */
 ```
+Reference the `--w-*` tokens rather than hard-coding weights. The `.mono` class
+adds `tabular-nums` so numeric readouts stay column-aligned without a
+monospaced face.
 The fonts are loaded in [`index.html`](../index.html) via a single Google Fonts
 `<link>`. To swap a font: change the family name in that link **and** the
 matching `--font-*` token. Keep the fallback stack after the comma.
@@ -241,11 +281,22 @@ matching `--font-*` token. Keep the fallback stack after the comma.
 ## 8. Post‑processing & atmosphere (visual polish)
 
 In [`src/scene/Scene.jsx`](../src/scene/Scene.jsx), inside `<EffectComposer>`:
+- **`<GodRays …/>`** — volumetric light shafts from the Sun. `weight` and
+  `exposure` control strength; `samples` is the quality/cost knob.
 - **`<Bloom intensity={0.85} luminanceThreshold={0.22} …/>`** — the glow.
   Raise `intensity` for more bloom; raise `luminanceThreshold` so only the
   brightest things glow.
 - **`<Vignette offset darkness />`** — the dark edge framing.
 - **`<ChromaticAberration/>`** — the subtle lens colour‑fringe.
+- **`<Noise opacity={0.45}/>`** — film grain.
+
+Signature mechanics (each in its own file, safe to tune or delete):
+- [`src/scene/HoloScan.jsx`](../src/scene/HoloScan.jsx) — the telemetry scan rig
+  around a focused planet (ring radii/speeds at the top of `useFrame`).
+- [`src/scene/ParallaxRig.jsx`](../src/scene/ParallaxRig.jsx) — mouse-parallax on
+  the deep background (tilt amounts: the `0.035` / `0.05` constants).
+- [`src/ui/CursorHud.jsx`](../src/ui/CursorHud.jsx) — the terminal reticle
+  cursor (styles under `.cursor-hud` in `ui.css`).
 
 The light rig and reflections live in
 [`src/scene/Lighting.jsx`](../src/scene/Lighting.jsx) — key/fill/rim lights plus a

@@ -7,8 +7,11 @@ import { Stars } from '@react-three/drei'
 export default function Starfield() {
   return (
     <>
-      <Stars radius={120} depth={50} count={2600} factor={4} saturation={0} fade speed={0.5} />
-      <Stars radius={180} depth={80} count={5000} factor={2} saturation={0} fade speed={0.2} />
+      {/* Near field: fewer, larger, brighter — these are the stars that cross
+          the bloom threshold and bleed, giving the sky its sparkle. */}
+      <Stars radius={120} depth={50} count={2200} factor={6} saturation={0} fade speed={0.6} />
+      {/* Far field: dense and fine, read as the background haze. */}
+      <Stars radius={180} depth={80} count={5200} factor={2.6} saturation={0} fade speed={0.2} />
     </>
   )
 }

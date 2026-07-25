@@ -24,9 +24,13 @@ const fragmentShader = /* glsl */ `
   void main() {
     vec3 d = normalize(vDir);
 
-    // Two scales of drifting gas, warped so the clouds are wispy, not blobby.
+    // Drifting gas, warped so the clouds are wispy rather than blobby.
+    // This shader covers EVERY pixel on screen, so its per-fragment cost is the
+    // single most expensive thing in the frame. The detail layer is one raw
+    // snoise rather than a second fbm — visually near-identical against a
+    // backdrop this dim, at two-thirds the noise evaluations.
     float base = fbm(d * 2.2 + vec3(0.0, uTime * 0.006, 0.0));
-    float warp = fbm(d * 5.0 + base * 1.5 + 12.0);
+    float warp = snoise(d * 5.0 + base * 1.5 + 12.0);
     float clouds = smoothstep(0.05, 0.75, base * 0.6 + warp * 0.4);
 
     vec3 col = vec3(0.015, 0.02, 0.04);            // deep space floor

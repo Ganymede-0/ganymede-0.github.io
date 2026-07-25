@@ -54,8 +54,7 @@ export default function CameraRig() {
       }
 
       // Read the body's live world position, then park the camera slightly
-      // above and outside it — off-center, so the mission panel on the right
-      // never covers the planet it's describing.
+      // above and outside it.
       const bodyPos = new THREE.Vector3()
       body.getWorldPosition(bodyPos)
 
@@ -65,11 +64,31 @@ export default function CameraRig() {
         .add(outward.multiplyScalar(3.6))
         .add(new THREE.Vector3(0, 1.5, 2.6))
 
+      // Frame the body on the LEFT of the viewport so it balances the mission
+      // panel on the right. We do this by aiming the camera's TARGET to the
+      // right of the body: the camera rotates right, the body slides left.
+      //
+      // The offset is derived, not eyeballed. At the camera's distance the
+      // frustum half-width is `tan(fov/2) * dist * aspect`. The panel covers
+      // the right ~42vw, so the visible area is the left ~58% and its centre
+      // sits at normalised x ≈ -0.42. Shifting the target by 0.42 * halfWidth
+      // along the camera-right vector lands the body dead-centre of that gap.
+      const target = bodyPos.clone()
+      const wideLayout = typeof window !== 'undefined' && window.innerWidth > 900
+      if (wideLayout) {
+        const camDist = camPos.distanceTo(bodyPos)
+        const halfH = Math.tan(THREE.MathUtils.degToRad(camera.fov) * 0.5) * camDist
+        const halfW = halfH * camera.aspect
+        const viewDir = bodyPos.clone().sub(camPos).normalize()
+        const right = new THREE.Vector3().crossVectors(viewDir, camera.up).normalize()
+        target.add(right.multiplyScalar(halfW * 0.42))
+      }
+
       // Everything decelerates together: the system stops turning as you
       // arrive, so the planet you selected holds still while you read.
       tl.to(orbitClock, { scale: 0, duration: duration * 0.8 }, 0)
       tl.to(camera.position, { x: camPos.x, y: camPos.y, z: camPos.z }, 0)
-      tl.to(controls.target, { x: bodyPos.x, y: bodyPos.y, z: bodyPos.z }, 0)
+      tl.to(controls.target, { x: target.x, y: target.y, z: target.z }, 0)
     } else {
       tl.to(orbitClock, { scale: 1, duration: duration * 1.1 }, 0)
       tl.to(camera.position, { ...OVERVIEW_POSITION }, 0)

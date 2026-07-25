@@ -8,11 +8,17 @@ export const useNavigationStore = create((set, get) => ({
   activeId: null,
   hoveredId: null,
 
+  // CV overlay: independent of the 3D focus state. `cvSection` is the section
+  // the panel should scroll to when it opens (or changes while open).
+  cvOpen: false,
+  cvSection: null,
+
   setHovered: (id) => set({ hoveredId: id }),
 
   focusBody: (id) => {
     if (get().view === 'transitioning') return
-    set({ view: 'transitioning', activeId: id })
+    // Opening a body from the CV closes the CV so the camera flight is unobscured.
+    set({ view: 'transitioning', activeId: id, cvOpen: false })
   },
 
   arrivedAtBody: () => set({ view: 'focus' }),
@@ -23,4 +29,8 @@ export const useNavigationStore = create((set, get) => ({
   },
 
   arrivedAtOverview: () => set({ view: 'overview', activeId: null }),
+
+  openCv: (section = null) => set({ cvOpen: true, cvSection: section }),
+  setCvSection: (section) => set({ cvSection: section }),
+  closeCv: () => set({ cvOpen: false }),
 }))

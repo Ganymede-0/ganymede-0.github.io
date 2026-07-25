@@ -1,5 +1,8 @@
-import { useMemo } from 'react'
+import { useMemo, useEffect } from 'react'
 import * as THREE from 'three'
+
+// One shared shell mesh geometry for every atmosphere in the scene.
+const SHELL = new THREE.SphereGeometry(1, 48, 48)
 
 // A fresnel rim-light shell. This is the single cheapest trick that makes a
 // sphere read as a *world* rather than a ball: light gathers at the limb and
@@ -35,6 +38,10 @@ export default function AtmosphereShell({
   intensity = 0.9,
   power = 2.6,
 }) {
+  // Built ONCE. `intensity` changes on every hover and focus change — rebuilding
+  // the ShaderMaterial for that (as this used to) forced a fresh GLSL compile
+  // and link mid-interaction, which is exactly the hitch you feel when sweeping
+  // the pointer across the system. Uniforms are mutated in place instead.
   const material = useMemo(
     () =>
       new THREE.ShaderMaterial({
@@ -50,12 +57,17 @@ export default function AtmosphereShell({
         side: THREE.BackSide,
         depthWrite: false,
       }),
-    [color, intensity, power]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
   )
 
-  return (
-    <mesh scale={scale} material={material}>
-      <sphereGeometry args={[1, 48, 48]} />
-    </mesh>
-  )
+  useEffect(() => {
+    material.uniforms.uColor.value.set(color)
+    material.uniforms.uIntensity.value = intensity
+    material.uniforms.uPower.value = power
+  }, [material, color, intensity, power])
+
+  useEffect(() => () => material.dispose(), [material])
+
+  return <mesh scale={scale} material={material} geometry={SHELL} />
 }

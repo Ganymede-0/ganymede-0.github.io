@@ -1,9 +1,9 @@
 :root {
   /* --- Palette --------------------------------------------------------- */
-  --color-void: #05070d;        /* deep space background */
-  --color-void-soft: #0b0f1c;   /* secondary background / gradient floor */
-  --color-panel: #10162a;       /* HUD panel surface */
-  --color-panel-line: #232c47;  /* panel borders / dividers */
+  --color-void: #04060c;        /* deep space background */
+  --color-void-soft: #0b1020;   /* secondary background / gradient floor */
+  --color-panel: #0e1424;       /* HUD panel surface */
+  --color-panel-line: #253052;  /* panel borders / dividers */
   --color-amber: #d98e4a;       /* Jupiter storm-band accent, primary highlight */
   --color-amber-dim: #8a5c30;
   --color-cyan: #6fe7dc;        /* ice / data accent */
@@ -14,15 +14,21 @@
   --color-slate-dim: #545d70;   /* tertiary / disabled */
 
   /* --- Type -------------------------------------------------------------- */
-  /* Four-role system:
-       display — human headers, titles, buttons (striking, geometric)
-       tech    — instrument micro-labels, codes, status (wide, technical)
-       mono    — dense data readouts and numeric values
-       body    — reading material / case-study prose (legible sans) */
-  --font-display: 'Space Grotesk', 'Segoe UI', sans-serif;
-  --font-tech: 'Orbitron', 'Space Grotesk', sans-serif;
-  --font-body: 'Inter', 'Segoe UI', sans-serif;
-  --font-mono: 'JetBrains Mono', 'SFMono-Regular', Consolas, monospace;
+  /* Manrope everywhere. One family, four *roles* — the hierarchy is carried by
+     the variable weight axis and letter-spacing rather than by switching faces,
+     which is what keeps a dense technical UI feeling like one instrument. */
+  --font-display: 'Manrope', system-ui, 'Segoe UI', sans-serif;
+  --font-body: 'Manrope', system-ui, 'Segoe UI', sans-serif;
+  --font-tech: 'Manrope', system-ui, 'Segoe UI', sans-serif;
+  --font-mono: 'Manrope', system-ui, 'Segoe UI', sans-serif;
+
+  /* Variable weight scale — reference these, don't hard-code numbers. */
+  --w-xbold: 800;  /* hero names, section titles */
+  --w-bold: 700;   /* buttons, sub-heads */
+  --w-semi: 600;   /* instrument labels, codes, status */
+  --w-med: 500;    /* emphasis inside prose */
+  --w-reg: 400;    /* reading material */
+  --w-light: 300;  /* long-form / data logs — quieter, denser */
 
   /* --- Layout ------------------------------------------------------------ */
   --panel-radius: 2px;
@@ -51,6 +57,7 @@ body {
     radial-gradient(120% 90% at 50% 42%, #0b1120 0%, #070a12 45%, #04060b 100%);
   color: var(--color-starlight);
   font-family: var(--font-body);
+  font-weight: var(--w-reg);
   overflow: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -81,7 +88,11 @@ button {
   }
 }
 
+/* The "instrument" register: tracked, semibold, tabular figures so numeric
+   readouts stay column-aligned without a monospaced face. */
 .mono {
   font-family: var(--font-mono);
-  letter-spacing: 0.02em;
+  font-weight: var(--w-semi);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.06em;
 }

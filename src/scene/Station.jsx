@@ -5,6 +5,8 @@ import * as THREE from 'three'
 import { orbitClock, bodyRegistry } from './orbitClock'
 import { useNavigationStore } from '../state/navigationStore'
 
+const _scale = new THREE.Vector3()
+
 // Experience isn't a planet — it's built, not discovered. So it's a station:
 // a hard-edged assembly of a hull, a truss, and two solar arrays, rendered
 // in flat metal against a system of soft atmospheric spheres. The silhouette
@@ -35,7 +37,7 @@ export default function Station({ project }) {
     if (bodyRef.current) {
       bodyRef.current.rotation.z += delta * 0.25 * Math.max(orbitClock.scale, 0.15)
       const target = isHovered || isActive ? 1.15 : 1
-      bodyRef.current.scale.lerp(new THREE.Vector3(target, target, target), 0.12)
+      bodyRef.current.scale.lerp(_scale.setScalar(target), 0.12)
     }
   })
 
