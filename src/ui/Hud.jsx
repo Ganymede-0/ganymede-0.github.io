@@ -39,9 +39,9 @@ export default function Hud() {
       <header className="hud hud--identity">
         <h1 className="identity__name">Sarah Altheeb</h1>
         <p className="identity__role mono">
-          AI Engineer · computer vision · 3D volumetric imaging
+          AI Engineer · Computer Vision · Industrial AI · MLOps
         </p>
-        <p className="identity__location mono">Al Khobar, Saudi Arabia</p>
+        <p className="identity__location mono">Al Khobar · Eastern Province, KSA</p>
       </header>
 
       <CvNav />
@@ -68,7 +68,7 @@ export default function Hud() {
       </footer>
 
       {view === 'overview' && (
-        <p className="hud hud--hint mono">Drag to look around · select a body to open its case study</p>
+        <p className="hud hud--hint mono">Drag to orbit · select a body to open the project</p>
       )}
     </>
   )

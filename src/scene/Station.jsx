@@ -1,8 +1,9 @@
-import { useRef, useEffect } from 'react'
-import { useFrame } from '@react-three/fiber'
+import { useRef, useEffect, useMemo } from 'react'
+import { useFrame, useThree } from '@react-three/fiber'
 import { Html } from '@react-three/drei'
 import * as THREE from 'three'
 import { orbitClock, bodyRegistry } from './orbitClock'
+import { labelDistanceFactor } from './framing'
 import { useNavigationStore } from '../state/navigationStore'
 
 const _scale = new THREE.Vector3()
@@ -21,6 +22,13 @@ export default function Station({ project }) {
   const hoveredId = useNavigationStore((s) => s.hoveredId)
   const activeId = useNavigationStore((s) => s.activeId)
   const view = useNavigationStore((s) => s.view)
+  const cvOpen = useNavigationStore((s) => s.cvOpen)
+
+  const canvasSize = useThree((s) => s.size)
+  const labelFactor = useMemo(
+    () => labelDistanceFactor(16),
+    [canvasSize.width, canvasSize.height]
+  )
 
   const isHovered = hoveredId === project.id
   const isActive = activeId === project.id
@@ -58,12 +66,12 @@ export default function Station({ project }) {
             e.stopPropagation()
             if (interactive) {
               setHovered(project.id)
-              document.body.style.cursor = 'pointer'
+              document.body.classList.add('is-pointing')
             }
           }}
           onPointerOut={() => {
             setHovered(null)
-            document.body.style.cursor = 'auto'
+            document.body.classList.remove('is-pointing')
           }}
         >
           {/* hull */}
@@ -121,11 +129,11 @@ export default function Station({ project }) {
           ))}
         </group>
 
-        {view === 'overview' && (
+        {view === 'overview' && !cvOpen && (
           <Html
             position={[0, 1.0, 0]}
             center
-            distanceFactor={16}
+            distanceFactor={labelFactor}
             style={{ pointerEvents: 'none', userSelect: 'none' }}
           >
             <div className={`body-label body-label--station ${isHovered ? 'is-hovered' : ''}`}>

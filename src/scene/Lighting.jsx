@@ -19,13 +19,16 @@ import { Environment, Lightformer } from '@react-three/drei'
 export default function Lighting() {
   return (
     <>
-      {/* Soft global floor so shadow-side geometry never crushes to pure black */}
-      <ambientLight intensity={0.28} />
-      <hemisphereLight args={['#9fb8ff', '#140b06', 0.55]} />
+      {/* Soft global floor so shadow-side geometry never crushes to pure black.
+          Kept low: with the star's point light plus a key and a fill, too much
+          ambient flattens every surface and is a large part of why the bodies
+          were washing out to pale fuzz instead of showing their materials. */}
+      <ambientLight intensity={0.18} />
+      <hemisphereLight args={['#9fb8ff', '#140b06', 0.35]} />
 
       {/* Cool key, raking in from upper-left — this is what actually sculpts
           the spheres and reads them as lit worlds rather than flat discs. */}
-      <directionalLight position={[-8, 12, 8]} intensity={1.35} color="#dfe9ff" />
+      <directionalLight position={[-8, 12, 8]} intensity={1.1} color="#dfe9ff" />
 
       {/* Warm counter-fill from the opposite side, tying the planets back to
           the amber core so the palette stays coherent across the system. */}

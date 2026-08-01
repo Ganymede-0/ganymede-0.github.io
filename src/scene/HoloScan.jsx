@@ -1,6 +1,5 @@
 import { useRef, useEffect } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { Html } from '@react-three/drei'
 import * as THREE from 'three'
 
 // The telemetry scan rig — the signature interaction. When the camera parks at
@@ -12,7 +11,7 @@ import * as THREE from 'three'
 //
 // Cost: three toruses with basic additive materials + one Html tag. No
 // shaders, no per-frame allocation — negligible next to the planet beneath it.
-export default function HoloScan({ color, missionCode }) {
+export default function HoloScan({ color }) {
   const gimbalA = useRef()
   const gimbalB = useRef()
   const sweep = useRef()
@@ -88,17 +87,6 @@ export default function HoloScan({ color, missionCode }) {
         />
       </mesh>
 
-      <Html
-        position={[0, 1.95, 0]}
-        center
-        distanceFactor={10}
-        style={{ pointerEvents: 'none', userSelect: 'none' }}
-      >
-        <div className="scan-tag" style={{ '--accent': color }}>
-          <span className="scan-tag__dot" aria-hidden="true" />
-          TELEMETRY LOCK · {missionCode}
-        </div>
-      </Html>
     </group>
   )
 }

@@ -1,6 +1,6 @@
 import { Suspense, useState, useCallback } from 'react'
 import { Canvas } from '@react-three/fiber'
-import { AdaptiveDpr, PerformanceMonitor, Preload, Sparkles } from '@react-three/drei'
+import { PerformanceMonitor, Preload } from '@react-three/drei'
 import {
   EffectComposer,
   Bloom,
@@ -16,22 +16,27 @@ import { Vector2, NoToneMapping } from 'three'
 import Starfield from './Starfield'
 import Nebula from './Nebula'
 import Sun from './Sun'
+import DustField from './DustField'
 import ParallaxRig from './ParallaxRig'
 import Planet from './Planet'
 import Station from './Station'
 import OrbitPath from './OrbitPath'
 import CameraRig from './CameraRig'
+import ResponsiveFraming from './ResponsiveFraming'
 import Lighting from './Lighting'
 import { projects, CATEGORY } from '../data/projects'
 import { useNavigationStore } from '../state/navigationStore'
 import { useReducedMotion } from './useReducedMotion'
 
 export default function Scene() {
-  const [dpr, setDpr] = useState(1.4)
-  // Quality tier, NOT an on/off switch for the colour pipeline. See the
-  // PerformanceMonitor note below — this only gates the single most expensive
-  // pass (god rays), never the grading that the scene's whole look depends on.
-  const [highQuality, setHighQuality] = useState(true)
+  // Resolution is the ONLY thing that adapts to performance. The effect chain
+  // is fixed, so the scene's look is identical on every machine — only its
+  // sharpness differs.
+  // Phones pack 3x device pixels behind a small screen; rendering this scene at
+  // full DPR there is pure waste and the main cause of a hot, stuttering
+  // handset. Start conservative on small viewports and let the monitor raise it.
+  const isSmall = typeof window !== 'undefined' && window.innerWidth < 900
+  const [dpr, setDpr] = useState(isSmall ? 1 : 1.35)
   // The Sun's photosphere mesh — the GodRays light source.
   const [sunMesh, setSunMesh] = useState(null)
   const activeId = useNavigationStore((s) => s.activeId)
@@ -39,16 +44,11 @@ export default function Scene() {
   const view = useNavigationStore((s) => s.view)
   const reducedMotion = useReducedMotion()
 
-  const onDecline = useCallback(() => {
-    setDpr(1)
-    setHighQuality(false)
-  }, [])
-  // Recovery must be symmetric. The previous build only ever restored dpr,
-  // which made the quality drop a permanent, one-way latch.
-  const onIncline = useCallback(() => {
-    setDpr(1.4)
-    setHighQuality(true)
-  }, [])
+  const onDecline = useCallback(() => setDpr(isSmall ? 0.8 : 1), [isSmall])
+  // Recovery must be symmetric. An earlier build only ever restored dpr while
+  // permanently disabling effects, making the quality drop a one-way latch that
+  // the scene could never climb back out of.
+  const onIncline = useCallback(() => setDpr(isSmall ? 1.2 : 1.35), [isSmall])
 
   return (
     <Canvas
@@ -75,6 +75,11 @@ export default function Scene() {
           is `refreshrate > 100 ? [60, 100] : [40, 60]` — on a 120/144Hz monitor
           that declares a perfectly good 58fps render a failure and degrades the
           scene on capable hardware. `flipflops` stops it oscillating forever. */}
+      {/* NOTE: <AdaptiveDpr> was removed. It writes the same `dpr` state this
+          monitor writes, so the two fought each other — dpr oscillated, which
+          re-allocated every render target in the composer on each change. That
+          churn is a large part of the "it dims / destabilises after a couple of
+          minutes" behaviour. One controller for resolution, and only one. */}
       <PerformanceMonitor
         bounds={() => [38, 58]}
         flipflops={3}
@@ -82,10 +87,9 @@ export default function Scene() {
         onIncline={onIncline}
         onFallback={onDecline}
       />
-      <AdaptiveDpr pixelated />
 
-      <color attach="background" args={['#05070d']} />
-      <fog attach="fog" args={['#060912', 55, 150]} />
+      <color attach="background" args={['#010206']} />
+      <fog attach="fog" args={['#02040a', 60, 170]} />
 
       <Suspense fallback={null}>
         <Lighting />
@@ -96,16 +100,11 @@ export default function Scene() {
         <ParallaxRig>
           <Nebula />
           <Starfield />
-          {/* Ionised dust drifting between the orbits. Bright enough to cross
-              the bloom threshold, so the particles bloom into soft points of
-              light rather than sitting flat against the nebula. */}
-          <Sparkles
-            count={140}
-            scale={[46, 22, 46]}
-            size={5}
-            speed={0.3}
-            opacity={1}
-            noise={0.5}
+          {/* Additive dust — see DustField for why this replaced <Sparkles>. */}
+          <DustField
+            count={isSmall ? 110 : 220}
+            extent={[48, 24, 48]}
+            size={9}
             color="#cfe2ff"
           />
         </ParallaxRig>
@@ -133,6 +132,7 @@ export default function Scene() {
         <Preload all />
       </Suspense>
 
+      <ResponsiveFraming />
       <CameraRig />
 
       {/* The composer is ALWAYS mounted. It carries the tone mapping and bloom
@@ -142,26 +142,39 @@ export default function Scene() {
           recovers. Degradation happens *inside* the chain instead. */}
       <EffectComposer multisampling={0} enableNormalPass={false}>
         {/* Volumetric light shafts from the Sun, occluded by every body that
-            passes in front of it. The one pass expensive enough to drop on
-            weak hardware — everything below it always runs. */}
-        {highQuality && sunMesh ? (
+            passes in front of it.
+            STABILITY: this mounts once, as soon as the Sun reports its mesh, and
+            is never toggled again. Adding or removing an effect rebuilds the
+            whole composer chain and recompiles its shader — doing that in
+            response to a frame-rate sample is what made the god rays appear,
+            vanish and change the scene's apparent exposure mid-session. Weak
+            hardware is now handled purely by resolution, which is free to
+            change without disturbing the look. */}
+        {sunMesh ? (
           <GodRays
             sun={sunMesh}
-            samples={36}
-            density={0.95}
-            decay={0.93}
-            weight={0.3}
-            exposure={0.3}
-            clampMax={0.9}
+            samples={30}
+            density={0.82}
+            decay={0.9}
+            /* weight/exposure were 0.35/0.34 — the shafts stopped reading as
+               light *through* the scene and became a flat yellow wash over the
+               whole frame. These are the two knobs to touch if you want more. */
+            weight={0.15}
+            exposure={0.16}
+            clampMax={0.55}
             blur
           />
         ) : null}
+        {/* luminanceThreshold was 0.2 — low enough that lit planet surfaces and
+            even nebula gas crossed it, so nearly the entire image bloomed and
+            everything drifted toward white. At 0.55 only genuinely hot things
+            (the photosphere, emissive seams, bright stars) bleed. */}
         <Bloom
-          intensity={0.95}
-          luminanceThreshold={0.2}
-          luminanceSmoothing={0.9}
+          intensity={0.6}
+          luminanceThreshold={0.55}
+          luminanceSmoothing={0.85}
           mipmapBlur
-          radius={0.72}
+          radius={0.62}
         />
         <ChromaticAberration
           offset={new Vector2(0.0006, 0.0009)}

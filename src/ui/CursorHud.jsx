@@ -11,11 +11,13 @@ import { useEffect, useRef } from 'react'
 export default function CursorHud() {
   const rootRef = useRef()
   const coordsRef = useRef()
+  const dotRef = useRef()
 
   useEffect(() => {
     const root = rootRef.current
     const coords = coordsRef.current
-    if (!root || !coords) return
+    const ring = root?.querySelector('.cursor-hud__ring')
+    if (!root || !coords || !ring) return
 
     const target = { x: -100, y: -100 }
     const pos = { x: -100, y: -100 }
@@ -42,10 +44,14 @@ export default function CursorHud() {
     let hitTestAt = 0
 
     const loop = (now) => {
-      // Damped chase — the lag is the character.
-      pos.x += (target.x - pos.x) * 0.16
-      pos.y += (target.y - pos.y) * 0.16
-      root.style.transform = `translate3d(${pos.x}px, ${pos.y}px, 0)`
+      // The ROOT tracks the pointer exactly — the dot must never lie about
+      // where a click will land, because this element replaces the native
+      // cursor entirely. Only the RING is damped, trailing behind on its own
+      // offset. That gives the motion its weight without costing precision.
+      pos.x += (target.x - pos.x) * 0.18
+      pos.y += (target.y - pos.y) * 0.18
+      root.style.transform = `translate3d(${target.x}px, ${target.y}px, 0)`
+      ring.style.transform = `translate3d(${pos.x - target.x}px, ${pos.y - target.y}px, 0)`
 
       // Interactive flare. `elementFromPoint` forces the browser to run a hit
       // test against the whole document — doing that every frame was competing
@@ -55,7 +61,7 @@ export default function CursorHud() {
         hitTestAt = now
         const el = document.elementFromPoint(target.x, target.y)
         const next =
-          document.body.style.cursor === 'pointer' ||
+          document.body.classList.contains('is-pointing') ||
           !!(el && el.closest('a, button'))
         if (next !== engaged) {
           engaged = next
@@ -89,7 +95,28 @@ export default function CursorHud() {
 
   return (
     <div className="cursor-hud" ref={rootRef} aria-hidden="true">
-      <span className="cursor-hud__ring" />
+      {/* An orbital navigation reticle: a body at the centre with a satellite
+          tracing an inclined orbit around it, inside a slowly precessing
+          survey ring. The whole thing is one SVG so the arcs stay crisp at any
+          scale, and it locks into a bracketed target when over something
+          interactive. */}
+      <svg className="cursor-hud__ring" viewBox="0 0 64 64" width="64" height="64">
+        {/* Survey ring — dashed, counter-rotating */}
+        <circle className="cursor-hud__survey" cx="32" cy="32" r="21" />
+        {/* Inclined orbit path + its satellite */}
+        <g className="cursor-hud__orbit">
+          <ellipse cx="32" cy="32" rx="27" ry="10" />
+          <circle className="cursor-hud__sat" cx="59" cy="32" r="1.9" />
+        </g>
+      </svg>
+
+      {/* Corner brackets — snap in on engage */}
+      <span className="cursor-hud__bracket cursor-hud__bracket--tl" />
+      <span className="cursor-hud__bracket cursor-hud__bracket--tr" />
+      <span className="cursor-hud__bracket cursor-hud__bracket--bl" />
+      <span className="cursor-hud__bracket cursor-hud__bracket--br" />
+
+      <span className="cursor-hud__dot" ref={dotRef} />
       <span className="cursor-hud__coords" ref={coordsRef} />
     </div>
   )

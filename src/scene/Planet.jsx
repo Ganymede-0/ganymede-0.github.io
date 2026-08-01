@@ -1,11 +1,12 @@
 import { useRef, useMemo, useEffect } from 'react'
-import { useFrame } from '@react-three/fiber'
+import { useFrame, useThree } from '@react-three/fiber'
 import { Html } from '@react-three/drei'
 import * as THREE from 'three'
 import AtmosphereShell from './AtmosphereShell'
 import HoloScan from './HoloScan'
 import { orbitClock, bodyRegistry } from './orbitClock'
 import { createPlanetMaterial } from './planetMaterials'
+import { labelDistanceFactor } from './framing'
 import { useNavigationStore } from '../state/navigationStore'
 
 // Module-scoped scratch vector — reused every frame so the hover-swell lerp
@@ -28,6 +29,15 @@ export default function Planet({ project }) {
   const hoveredId = useNavigationStore((s) => s.hoveredId)
   const activeId = useNavigationStore((s) => s.activeId)
   const view = useNavigationStore((s) => s.view)
+  const cvOpen = useNavigationStore((s) => s.cvOpen)
+
+  // Subscribing to canvas size re-renders this on resize/rotate, which is what
+  // keeps the label scale in step with the responsive camera distance.
+  const canvasSize = useThree((s) => s.size)
+  const labelFactor = useMemo(
+    () => labelDistanceFactor(16),
+    [canvasSize.width, canvasSize.height]
+  )
 
   const isHovered = hoveredId === project.id
   const isActive = activeId === project.id
@@ -75,12 +85,15 @@ export default function Planet({ project }) {
             e.stopPropagation()
             if (interactive) {
               setHovered(project.id)
-              document.body.style.cursor = 'pointer'
+              // A class, not an inline `cursor` style: the native cursor is
+              // hidden globally and replaced by the reticle, and an inline
+              // style here would override that and bring the OS arrow back.
+              document.body.classList.add('is-pointing')
             }
           }}
           onPointerOut={() => {
             setHovered(null)
-            document.body.style.cursor = 'auto'
+            document.body.classList.remove('is-pointing')
           }}
         >
           <mesh scale={project.size} material={material} geometry={SPHERE} />
@@ -97,17 +110,20 @@ export default function Planet({ project }) {
         {/* Telemetry scan rig — materializes once the camera has parked. */}
         {isActive && view === 'focus' && (
           <group scale={project.size}>
-            <HoloScan color={project.color} missionCode={project.missionCode} />
+            <HoloScan color={project.color} />
           </group>
         )}
 
-        {/* Label. Hidden during flight and while a panel is open so the
-            readable UI never competes with floating 3D text. */}
-        {view === 'overview' && (
+        {/* Label. Hidden during flight, and while EITHER panel is open — drei's
+            <Html> portals into its own DOM layer that sits above the canvas, so
+            a floating label will punch straight through an overlay panel no
+            matter what z-index the panel carries. Not rendering it is the only
+            reliable fix. */}
+        {view === 'overview' && !cvOpen && (
           <Html
             position={[0, project.size + 0.75, 0]}
             center
-            distanceFactor={16}
+            distanceFactor={labelFactor}
             style={{ pointerEvents: 'none', userSelect: 'none' }}
           >
             <div className={`body-label ${isHovered ? 'is-hovered' : ''}`}>

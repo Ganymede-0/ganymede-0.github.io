@@ -3,7 +3,13 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- viewport-fit=cover lets the scene run edge-to-edge behind a notch /
+         rounded corners; the UI is then inset with env(safe-area-inset-*) so no
+         control ever lands under the hardware. -->
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
     <meta name="theme-color" content="#05070d" />
     <meta
       name="description"
@@ -11,13 +17,12 @@
     />
     <title>Sarah Altheeb · Applied AI Engineer</title>
 
-    <!-- Manrope, variable 200–800. One family for the entire application;
-         the hierarchy comes from weight and tracking, not from mixing faces.
-         A single variable axis also means one font file for every register. -->
+    <!-- Sora — variable, 100–800, used globally. A single variable axis means
+         one file covers every weight in the hierarchy. -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Sora:wght@100..800&display=swap"
       rel="stylesheet"
     />
   </head>

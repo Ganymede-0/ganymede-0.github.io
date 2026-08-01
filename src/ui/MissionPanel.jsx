@@ -8,7 +8,7 @@ import { useReducedMotion } from '../scene/useReducedMotion'
 // The panel's header rule is the selected body's orbit. It arrives as the same
 // dashed curve you were just looking at in 3D, then flattens into a straight
 // rule as the panel settles — the trajectory literally becomes the line the
-// case study is written on. It's the one flourish in the UI layer; everything
+// project is written on. It's the one flourish in the UI layer; everything
 // below it is deliberately flat, quiet, and readable.
 const CURVED = 'M 0 26 Q 160 0 320 26'
 const FLAT = 'M 0 26 Q 160 26 320 26'
@@ -88,7 +88,7 @@ export default function MissionPanel() {
     <aside
       className="mission-panel"
       ref={panelRef}
-      aria-label={`${project.name} case study`}
+      aria-label={`${project.name} project`}
       style={{ '--accent': project.color }}
     >
       <OrbitRule color={project.color} reducedMotion={reducedMotion} />

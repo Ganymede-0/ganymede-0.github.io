@@ -1,25 +1,32 @@
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useMemo } from 'react'
 import { useThree, useFrame } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import gsap from 'gsap'
 import * as THREE from 'three'
 import { orbitClock, bodyRegistry } from './orbitClock'
+import { framing, OVERVIEW_TARGET } from './framing'
 import { useNavigationStore } from '../state/navigationStore'
 import { useReducedMotion } from './useReducedMotion'
-
-const OVERVIEW_POSITION = new THREE.Vector3(0, 11, 27)
-const OVERVIEW_TARGET = new THREE.Vector3(0, 0, 0)
 
 export default function CameraRig() {
   const controlsRef = useRef()
   const tweenRef = useRef(null)
-  const { camera } = useThree()
+  const { camera, size } = useThree()
 
   const view = useNavigationStore((s) => s.view)
   const activeId = useNavigationStore((s) => s.activeId)
   const arrivedAtBody = useNavigationStore((s) => s.arrivedAtBody)
   const arrivedAtOverview = useNavigationStore((s) => s.arrivedAtOverview)
   const reducedMotion = useReducedMotion()
+
+  // Zoom-out limit must clear the framed overview distance, which on a narrow
+  // viewport is far larger than the old fixed 46. OrbitControls clamps the
+  // camera on every update(), so a too-small maxDistance silently drags the
+  // camera back in and undoes the responsive framing. Recomputed on resize.
+  const maxDistance = useMemo(
+    () => Math.max(50, framing.distance * 1.45),
+    [size.width, size.height]
+  )
 
   // OrbitControls needs an explicit update() each frame once damping is on.
   useFrame(() => {
@@ -74,8 +81,10 @@ export default function CameraRig() {
       // sits at normalised x ≈ -0.42. Shifting the target by 0.42 * halfWidth
       // along the camera-right vector lands the body dead-centre of that gap.
       const target = bodyPos.clone()
-      const wideLayout = typeof window !== 'undefined' && window.innerWidth > 900
-      if (wideLayout) {
+      // Only offset when a SIDE panel is actually covering the right of the
+      // screen. In the compact layout the panel is a bottom sheet, so pushing
+      // the body left would just shove it off the edge of a phone.
+      if (framing.sidePanel) {
         const camDist = camPos.distanceTo(bodyPos)
         const halfH = Math.tan(THREE.MathUtils.degToRad(camera.fov) * 0.5) * camDist
         const halfW = halfH * camera.aspect
@@ -90,8 +99,10 @@ export default function CameraRig() {
       tl.to(camera.position, { x: camPos.x, y: camPos.y, z: camPos.z }, 0)
       tl.to(controls.target, { x: target.x, y: target.y, z: target.z }, 0)
     } else {
+      // Read the CURRENT framing, not a constant — the viewport may have been
+      // resized or rotated while the visitor was parked at a body.
       tl.to(orbitClock, { scale: 1, duration: duration * 1.1 }, 0)
-      tl.to(camera.position, { ...OVERVIEW_POSITION }, 0)
+      tl.to(camera.position, { ...framing.position }, 0)
       tl.to(controls.target, { ...OVERVIEW_TARGET }, 0)
     }
 
@@ -107,7 +118,7 @@ export default function CameraRig() {
       dampingFactor={0.06}
       enablePan={false}
       minDistance={4}
-      maxDistance={46}
+      maxDistance={maxDistance}
       maxPolarAngle={Math.PI * 0.85}
       minPolarAngle={Math.PI * 0.08}
       rotateSpeed={0.5}

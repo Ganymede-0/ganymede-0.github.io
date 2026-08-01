@@ -29,12 +29,14 @@ src/
 │   ├── Planet.jsx          ← how a project body is built & animated
 │   ├── Station.jsx         ← how an experience/“station” body is built
 │   ├── planetMaterials.js  ← ★ the bespoke per‑planet surface shaders
-│   ├── proceduralTextures.js (canvas textures, incl. the Sun surface)
 │   ├── glslNoise.js         (shared noise functions — rarely edited)
 │   ├── Nebula.jsx           (deep‑space coloured gas backdrop)
 │   ├── Starfield.jsx        (two‑layer star field)
-│   ├── AtmosphereShell.jsx  (the glowing rim/atmosphere on each body)
-│   ├── OrbitPath.jsx        (the dashed orbit lines)
+│   ├── DustField.jsx        (additive drifting dust particles)
+│   ├── AtmosphereShell.jsx  (atmospheric scattering around each body)
+│   ├── OrbitPath.jsx        (soft glowing orbit filaments)
+│   ├── HoloScan.jsx         (telemetry rig on a focused body)
+│   ├── ParallaxRig.jsx      (mouse parallax on the background)
 │   └── orbitClock.js        (shared animation clock — do not edit)
 ├── ui/                        (the 2D interface over the canvas)
 │   ├── Hud.jsx             ← ★ name, role, location, contact links
@@ -199,10 +201,32 @@ All of it lives in [`src/data/cv.js`](../src/data/cv.js):
   “View in orbit” button which flies the camera to it.
 
 ### The Sun (central identity body)
-[`src/scene/Sun.jsx`](../src/scene/Sun.jsx) renders a texture-driven photosphere +
-corona. It ships with a procedural granulation texture (zero binary assets). To
-swap in a **photographic** sun, drop a JPG in `public/textures/` and follow the
-`useTexture` note at the top of that file (one-line change).
+[`src/scene/Sun.jsx`](../src/scene/Sun.jsx) renders the star entirely in GLSL:
+turbulent convection granulation, limb darkening, a temperature ramp, sunspot
+umbrae and faculae, plus a separate additive corona shell. The core is fully
+opaque and is the light source the god-rays pass reads from.
+
+**Tuning the Sun's brightness.** Four values compound, so change them together
+or the frame blows out. In order of impact:
+
+| Value | File | Now | Effect |
+|---|---|---|---|
+| `coreUniforms.uIntensity` | `Sun.jsx` | `1.15` | Master brightness of the disc |
+| `Bloom luminanceThreshold` | `Scene.jsx` | `0.55` | **Lower = more of the scene glows.** Below ~0.3 the planets bloom too and everything washes white |
+| `GodRays weight` / `exposure` | `Scene.jsx` | `0.15` / `0.16` | Strength of the light shafts |
+| `pointLight intensity` | `Sun.jsx` | `95` | How hard the star lights the planets |
+
+If you want a brighter star specifically, raise `uIntensity` **first** and leave
+the bloom threshold alone — raising brightness and lowering the threshold at the
+same time is what produced the earlier whiteout.
+
+**To use a photographic texture instead:** download a sun map (e.g. the free 2K
+"Sun" from <https://www.solarsystemscope.com/textures/>, CC BY 4.0) into
+`public/textures/`, then feed it to the core material as an `emissiveMap` on a
+`meshStandardMaterial` via drei's `useTexture('/textures/2k_sun.jpg')`. Keep the
+corona mesh as-is. Note that a static photo loses the animated convection and
+the view-dependent limb darkening the shader computes per-frame — the shader is
+the better result here, which is why it ships as the default.
 
 ---
 
@@ -256,22 +280,35 @@ on focus is handled automatically by `orbitClock` — no edit needed.
 ```
 
 ### Typography — `tokens.css`
-**Manrope everywhere** (variable, 200–800). One family; the hierarchy comes from
-the weight axis and letter-spacing, not from switching faces:
-```css
---font-display: 'Manrope', …;  /* all four roles resolve to Manrope */
---font-body:    'Manrope', …;
---font-tech:    'Manrope', …;
---font-mono:    'Manrope', …;
-
---w-xbold: 800;  /* hero names, section titles */
---w-bold:  700;  /* buttons, sub-heads */
---w-semi:  600;  /* instrument labels, codes, status */
---w-med:   500;  --w-reg: 400;  --w-light: 300;  /* reading material */
+**Sora (variable, 100–800) everywhere.** Loaded in `index.html`:
+```html
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@100..800&display=swap" rel="stylesheet" />
 ```
-Reference the `--w-*` tokens rather than hard-coding weights. The `.mono` class
-adds `tabular-nums` so numeric readouts stay column-aligned without a
-monospaced face.
+```css
+--font-display: 'Sora', …;  /* all four roles resolve to Sora */
+--font-body:    'Sora', …;
+--font-tech:    'Sora', …;
+--font-mono:    'Sora', …;
+
+--w-xbold: 700;  --w-bold:  600;  /* headers, buttons */
+--w-semi:  500;  --w-med:   400;  /* instrument labels, codes, status */
+--w-reg:   300;  --w-light: 200;  /* reading material, data logs */
+```
+
+### Long-form readability
+Body copy is deliberately set at **300**, not 400. Light text on a dark ground
+renders optically bolder than the same weight printed dark-on-light, so 300 here
+matches the colour of a normal 400 on paper; at 400 the paragraphs go heavy and
+the lines stop separating. Two tokens control the reading rhythm:
+```css
+--measure: 62ch;       /* max line length — past ~70ch the eye loses the line return */
+--leading-copy: 1.75;  /* line-height; Sora's tall x-height needs more than 1.5 */
+```
+Both are applied by a single shared rule in `ui.css` covering `.cv-prose`,
+`.mission-panel__summary`, `.mission-panel__section p`, `.cv-system__blurb`,
+`.cv-entry__points li` and `.cv-award__detail` — change them in one place and
+every paragraph in the app follows. The `.mono` class adds `tabular-nums` so
+numeric readouts stay column-aligned without a monospaced face.
 The fonts are loaded in [`index.html`](../index.html) via a single Google Fonts
 `<link>`. To swap a font: change the family name in that link **and** the
 matching `--font-*` token. Keep the fallback stack after the comma.

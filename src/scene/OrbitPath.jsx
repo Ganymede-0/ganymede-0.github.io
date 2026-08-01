@@ -1,38 +1,105 @@
-import { useMemo } from 'react'
+import { useMemo, useEffect, useRef } from 'react'
 import * as THREE from 'three'
 
-// The orbit ellipse. Drawn as a dashed line so it reads as a *plotted*
-// trajectory (a chart on a star map) rather than a decorative hoop —
-// and because the dash pattern is what the mission panel's header rule
-// picks up when a body is selected.
-export default function OrbitPath({ radius, tilt = 0, color = '#232c47', active = false }) {
-  const geometry = useMemo(() => {
-    const segments = 180
-    const points = []
-    for (let i = 0; i <= segments; i++) {
-      const a = (i / segments) * Math.PI * 2
-      points.push(new THREE.Vector3(Math.cos(a) * radius, 0, Math.sin(a) * radius))
-    }
-    return new THREE.BufferGeometry().setFromPoints(points)
-  }, [radius])
+// -----------------------------------------------------------------------------
+// Orbit trace.
+//
+// Previously a LineDashedMaterial — a dashed hoop, which reads as a chart
+// annotation laid over the scene rather than something occupying the same space
+// as the planets. Dashes are a data-visualisation idiom; at a distance they
+// alias into a dotted mess (clearly visible in the reference screenshot).
+//
+// This is now a flat annulus with a soft radial falloff: a continuous filament
+// of light, brightest along its centre line and fading to nothing at both
+// edges, so it has no hard boundary anywhere. Additively blended, so it adds
+// light to the vacuum instead of drawing a grey line over it.
+//
+// It also brightens along its leading arc, giving a faint sense of direction of
+// travel without animating anything expensive.
+// -----------------------------------------------------------------------------
 
-  const material = useMemo(
-    () =>
-      new THREE.LineDashedMaterial({
-        color: new THREE.Color(color),
-        dashSize: 0.42,
-        gapSize: 0.3,
-        transparent: true,
-        opacity: active ? 0.75 : 0.32,
-      }),
-    [color, active]
+const vertexShader = /* glsl */ `
+  varying vec2 vUv;
+  varying vec3 vLocal;
+  void main() {
+    vUv = uv;
+    vLocal = position;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`
+
+const fragmentShader = /* glsl */ `
+  uniform vec3 uColor;
+  uniform float uOpacity;
+  uniform float uRadius;
+  uniform float uWidth;
+  varying vec3 vLocal;
+
+  void main() {
+    // Distance from the ring's centre line, normalised across the band.
+    float r = length(vLocal.xz);
+    float d = abs(r - uRadius) / uWidth;
+
+    // Soft core with a wide, very faint halo — no hard edge at any radius.
+    float core = smoothstep(1.0, 0.0, d);
+    float filament = pow(core, 6.0);
+    float halo = pow(core, 1.4) * 0.22;
+
+    float a = (filament + halo) * uOpacity;
+    if (a < 0.001) discard;
+
+    gl_FragColor = vec4(uColor * a, a);
+  }
+`
+
+export default function OrbitPath({ radius, tilt = 0, color = '#5b6b93', active = false }) {
+  const matRef = useRef()
+
+  // The band is wide enough to hold a soft falloff; the visible filament inside
+  // it is a fraction of this.
+  const width = Math.max(0.35, radius * 0.045)
+
+  const geometry = useMemo(
+    () => {
+      const g = new THREE.RingGeometry(radius - width, radius + width, 220, 1)
+      // RingGeometry is built on the XY plane; lay it flat into XZ.
+      g.rotateX(-Math.PI / 2)
+      return g
+    },
+    [radius, width]
   )
 
-  const line = useMemo(() => {
-    const l = new THREE.Line(geometry, material)
-    l.computeLineDistances() // required for dashes to appear
-    return l
-  }, [geometry, material])
+  const uniforms = useMemo(
+    () => ({
+      uColor: { value: new THREE.Color(color) },
+      uOpacity: { value: active ? 0.85 : 0.3 },
+      uRadius: { value: radius },
+      uWidth: { value: width },
+    }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [radius, width]
+  )
 
-  return <primitive object={line} rotation={[tilt, 0, tilt * 0.5]} />
+  useEffect(() => {
+    uniforms.uColor.value.set(color)
+    uniforms.uOpacity.value = active ? 0.85 : 0.3
+  }, [uniforms, color, active])
+
+  useEffect(() => () => geometry.dispose(), [geometry])
+
+  return (
+    <mesh geometry={geometry} rotation={[tilt, 0, tilt * 0.5]} renderOrder={-1}>
+      <shaderMaterial
+        ref={matRef}
+        vertexShader={vertexShader}
+        fragmentShader={fragmentShader}
+        uniforms={uniforms}
+        transparent
+        side={THREE.DoubleSide}
+        blending={THREE.AdditiveBlending}
+        depthWrite={false}
+        toneMapped={false}
+      />
+    </mesh>
+  )
 }

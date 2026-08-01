@@ -1,16 +1,22 @@
 // -----------------------------------------------------------------------------
-// The résumé, as data. This is the single source of truth for the CV navigation
-// (bottom-left) and the CV panel. Copy is phrased for recruiters — outcome-first,
-// lightly generalized — while staying faithful to the source CV.
+// The résumé, as data. Single source of truth for the CV navigation (bottom-left)
+// and the CV panel.
+//
+// EDITORIAL DIRECTION: the audience is technical directors and talent leads at
+// industrial AI and energy organisations in the Eastern Province — Aramco
+// Digital, Leap Networks, and their integrator ecosystem. Copy is therefore
+// written in the vocabulary those teams actually use: asset reliability,
+// condition monitoring, operational telemetry, anomaly detection, on-premise
+// deployment. Outcome first, metric attached, no student framing.
 //
 // Section order here IS the order in the nav and the panel. `projectId` links a
-// flagship system to its orbiting planet so the panel can fly the camera to it.
+// system to its orbiting body so the panel can fly the camera to it.
 // -----------------------------------------------------------------------------
 
 export const identity = {
   name: 'Sarah Khalid Altheeb',
-  headline: 'AI Engineer · Computer Vision · Deep Learning · MLOps',
-  location: 'Al Khobar, Saudi Arabia',
+  headline: 'Artificial Intelligence Engineer · Computer Vision · Industrial AI · MLOps',
+  location: 'Al Khobar, Eastern Province, Saudi Arabia',
   languages: 'Arabic (native) · English (fluent)',
   contact: {
     email: 'sarah.altheeeb@gmail.com',
@@ -26,12 +32,14 @@ export const cvSections = [
     label: 'Profile',
     kind: 'prose',
     body:
-      'Final-year Artificial Intelligence engineer specializing in end-to-end ' +
-      'deep-learning systems — from raw data pipelines through to deployed, ' +
-      'cloud-served inference. Hands-on across 3D medical computer vision, ' +
-      'time-series forecasting with Transformers, and applied analytics, with a ' +
-      'consistent focus on models that are reproducible, explainable, and ' +
-      'genuinely useful to the people who act on their output.',
+      'Artificial Intelligence engineer building production systems that convert raw ' +
+      'operational telemetry into decisions the field can act on. Experience spans the ' +
+      'full delivery path — data ingestion and validation, model development for anomaly ' +
+      'detection and equipment condition monitoring, and on-premise deployment into live ' +
+      'industrial environments. Contributed to enterprise-scale predictive maintenance and ' +
+      'safety platforms serving Tier-1 industrial clients, with a consistent emphasis on ' +
+      'asset performance, system reliability, and models whose outputs a maintenance ' +
+      'engineer can defend.',
   },
 
   {
@@ -41,12 +49,14 @@ export const cvSections = [
     kind: 'timeline',
     items: [
       {
-        role: 'Cooperative Engineering Trainee',
+        role: 'Artificial Intelligence Engineer — COOP',
         org: 'Leap Networks Arabia',
-        period: '2024',
+        period: 'Jun 2026 – Aug 2026',
         points: [
-          'Worked in a live operational environment on external clients’ tracking networks and video systems, bridging day-to-day operations with an engineering perspective.',
-          'Supported the reliability and observability of client-facing infrastructure in production — not just in a lab setting.',
+          'Built a Python/OpenCV ingestion pipeline processing raw CCTV footage into 800+ validated training frames, supplying the safety-monitoring models deployed for industrial clients.',
+          'Supported on-premise rollout of the Leap AI Engine — provisioning native Linux environments and configuring Docker containers for real-time equipment monitoring and anomaly detection inside client infrastructure.',
+          'Designed and integrated custom features across Leap’s Django/Next.js ERP and RTLS/SSMS AI platforms, automating operational workflows end to end.',
+          'Ran exploratory data analysis to validate dataset integrity before training, and maintained the technical documentation supporting handover.',
         ],
       },
     ],
@@ -55,40 +65,33 @@ export const cvSections = [
   {
     id: 'systems',
     code: '02',
-    label: 'Flagship Systems',
+    label: 'Engineered Systems',
     kind: 'projects',
     items: [
       {
-        name: 'Raha — Automated 3D Medical Scan Analysis',
-        projectId: 'raha',
-        period: 'Jan–May 2026 · Senior Graduation Project',
-        blurb:
-          'Full-stack platform turning 90+ GB of volumetric medical scans into clean clinical metrics. A multi-stage 3D pipeline (U-Net localizer → segmentation) reached a 0.95+ Dice score, packaged with MLOps practices for cloud web delivery.',
-        stack: ['PyTorch', 'MONAI', 'nnU-Net', 'FastAPI', 'PostgreSQL'],
-        badge: '2nd place · Graduation Showcase 2026',
-      },
-      {
-        name: 'Bayan — Industrial Predictive Maintenance',
+        name: 'Bayan — Predictive Maintenance & Remaining Useful Life',
         projectId: 'bayan',
-        period: 'Jan–May 2026',
+        period: 'Jan – May 2026',
         blurb:
-          'A Transformer encoder for Remaining-Useful-Life estimation ranking in the top 15% of published methods on C-MAPSS, paired with a fine-tuned 7B LLM that converts forecasts into severity-classified maintenance advisories at 0.92 BERTScore — directly applicable to upstream oil & gas monitoring.',
-        stack: ['PyTorch', 'Hugging Face', 'Transformers', 'LLM fine-tuning'],
+          'Transformer-based encoder for equipment condition monitoring and Remaining Useful Life estimation, ranking in the top 15% of published deep learning methods on the C-MAPSS benchmark — directly transferable to upstream oil & gas asset monitoring. A fine-tuned 7B-parameter LLM converts structured anomaly signals into severity-classified maintenance advisories, scoring 0.92 BERTScore against expert-written reports.',
+        stack: ['PyTorch', 'Hugging Face Transformers', 'LLM fine-tuning', 'Time-series modelling'],
       },
       {
-        name: 'Sharqiyah — Real-Estate Market Analytics',
+        name: 'Raha — Volumetric Imaging & Automated Analysis Platform',
+        projectId: 'raha',
+        period: 'Jan – May 2026 · Senior Graduation Project',
+        blurb:
+          'Full-stack platform processing 90+ GB of high-dimensional 3D scan data into validated, actionable metrics. A multi-stage pipeline pairs a U-Net localizer resolving targets to within ~1 voxel with a segmentation stage achieving a 0.95+ Dice score, packaged under MLOps practice for deployment behind a cloud web interface.',
+        stack: ['PyTorch', 'MONAI', 'nnU-Net', 'FastAPI', 'PostgreSQL'],
+        badge: '2nd Place · Graduation Projects Showcase 2026',
+      },
+      {
+        name: 'Sharqiyah — Eastern Province Market Analytics',
         projectId: 'sharqiyah',
-        period: 'Jan–Apr 2026',
+        period: 'Jan – Apr 2026',
         blurb:
-          'A CatBoost regression model (R² = 0.794) over 5+ years of Eastern-Province transactions, deployed in a Streamlit dashboard with a hybrid ML + CAGR forecasting engine that extrapolates beyond the limits of tree-based models.',
-        stack: ['CatBoost', 'Scikit-learn', 'Streamlit', 'Plotly'],
-      },
-      {
-        name: 'MotionSense — Human Activity Recognition',
-        period: 'Sep–Dec 2025',
-        blurb:
-          'A ResNet-BiLSTM hybrid with custom attention at 96% accuracy / 0.96 weighted F1 on UCI-HAR, fusing time-domain attention with FFT frequency features and subject-wise validation to eliminate static-posture misclassification.',
-        stack: ['TensorFlow', 'Keras', 'ResNet', 'BiLSTM'],
+          'CatBoost regression model reaching R² = 0.794 across 5+ years of Eastern Province transaction data, with log-transformation and processing components engineered to absorb extreme outliers. Deployed as an analytics dashboard whose Hybrid Forecasting Engine combines the ML baseline with dynamic CAGR mathematics to extrapolate beyond the horizon tree-based models can reach.',
+        stack: ['CatBoost', 'Scikit-learn', 'Streamlit', 'Pandas', 'Plotly'],
       },
     ],
   },
@@ -101,10 +104,10 @@ export const cvSections = [
     items: [
       {
         role: 'B.Sc. Artificial Intelligence',
-        org: 'Imam Abdulrahman Bin Faisal University',
-        period: 'Expected Jun 2026',
+        org: 'Imam Abdulrahman Bin Faisal University — Dammam',
+        period: 'Jun 2026',
         points: [
-          'College of Computer Science & Information Technology · GPA 4.58 / 5.00.',
+          'College of Computer Science & Information Technology, Computer Engineering Department · GPA 4.61 / 5.00.',
           'Coursework: Data Science & Analytics, Machine Learning, Deep Learning, Natural Language Processing, Generative AI, Computer Vision.',
         ],
       },
@@ -117,10 +120,13 @@ export const cvSections = [
     label: 'Technical Stack',
     kind: 'stack',
     groups: [
-      { label: 'Languages', items: ['Python', 'SQL', 'C++', 'Java'] },
-      { label: 'ML / Deep Learning', items: ['PyTorch', 'TensorFlow', 'Keras', 'Hugging Face', 'Scikit-learn', 'XGBoost', 'CatBoost', 'MONAI', 'nnU-Net'] },
-      { label: 'Data & Serving', items: ['FastAPI', 'PostgreSQL', 'Streamlit', 'Pandas', 'NumPy', 'Plotly'] },
-      { label: 'Practice & Tooling', items: ['Git / GitHub', 'Docker', 'MLOps', 'VS Code', 'Google Colab'] },
+      { label: 'Languages', items: ['Python', 'SQL', 'C++'] },
+      {
+        label: 'Machine Learning',
+        items: ['PyTorch', 'TensorFlow', 'Hugging Face', 'Scikit-learn', 'XGBoost', 'CatBoost', 'OpenCV'],
+      },
+      { label: 'Data & Serving', items: ['FastAPI', 'PostgreSQL', 'Streamlit', 'Pandas', 'NumPy'] },
+      { label: 'Deployment & Operations', items: ['Docker', 'Linux', 'Git / GitHub', 'MLOps', 'VS Code'] },
     ],
   },
 
@@ -130,9 +136,16 @@ export const cvSections = [
     label: 'Recognition',
     kind: 'list',
     items: [
-      { title: '2nd Place — Graduation Projects Showcase 2026', detail: 'Awarded among AI-major projects for Raha, the 3D medical scan analysis platform.' },
-      { title: 'KSAU Innovation Hackathon 2026 · Riyadh', detail: 'Selected from 1,500+ applicants as a top participant; Certificate of Recognition from King Saud bin Abdulaziz University for Health Sciences.' },
-      { title: 'Aramco Consulting Championship 2026', detail: 'Selected participant in Saudi Aramco’s consulting competition for university students.' },
+      {
+        title: '2nd Place — Graduation Projects Showcase 2026',
+        detail:
+          'Awarded among AI-major projects for Raha, an automated platform processing 3D imaging data into clinical metrics for research use.',
+      },
+      {
+        title: 'KSAU Innovation Hackathon 2026 · Riyadh',
+        detail:
+          'Selected from 1,500+ applicants as a top participant; Certificate of Recognition from King Saud bin Abdulaziz University for Health Sciences.',
+      },
     ],
   },
 ]
