@@ -35,7 +35,7 @@ export default function Lighting() {
       <directionalLight position={[10, -4, -6]} intensity={0.5} color="#ffb877" />
 
       {/* Faint rim from behind camera-left, for limb separation against fog. */}
-      <pointLight position={[-14, 6, -18]} intensity={40} distance={70} decay={2} color="#6fe7dc" />
+      <pointLight position={[-14, 6, -18]} intensity={40} distance={70} decay={2} color="#8b7cff" />
 
       <Environment resolution={256} frames={1} background={false}>
         {/* A dim, cool room so nothing reflects garish white */}
@@ -59,11 +59,11 @@ export default function Lighting() {
           rotation={[0, -Math.PI / 2, 0]}
           scale={[10, 6, 1]}
         />
-        {/* Cyan accent strip on the opposite flank — the data/ice signature */}
+        {/* Violet accent strip on the opposite flank — the data signature */}
         <Lightformer
           form="rect"
           intensity={2.2}
-          color="#6fe7dc"
+          color="#8b7cff"
           position={[-10, -1, 2]}
           rotation={[0, Math.PI / 2, 0]}
           scale={[10, 6, 1]}

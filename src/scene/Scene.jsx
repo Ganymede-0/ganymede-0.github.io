@@ -17,6 +17,7 @@ import Starfield from './Starfield'
 import Nebula from './Nebula'
 import Sun from './Sun'
 import DustField from './DustField'
+import OrbitSkater from './OrbitSkater'
 import ParallaxRig from './ParallaxRig'
 import Planet from './Planet'
 import Station from './Station'
@@ -27,6 +28,10 @@ import Lighting from './Lighting'
 import { projects, CATEGORY } from '../data/projects'
 import { useNavigationStore } from '../state/navigationStore'
 import { useReducedMotion } from './useReducedMotion'
+
+// Set to true once a rigged, animated character exists at public/models/skater.glb.
+// Left off by default so the app never requests a file that isn't there.
+const SHOW_SKATER = false
 
 export default function Scene() {
   // Resolution is the ONLY thing that adapts to performance. The effect chain
@@ -127,6 +132,16 @@ export default function Scene() {
           ) : (
             <Planet key={project.id} project={project} />
           )
+        )}
+
+        {SHOW_SKATER && (
+          <OrbitSkater
+            url="/models/skater.glb"
+            radius={12}
+            tilt={0.04}
+            speed={0.05}
+            scale={1}
+          />
         )}
 
         <Preload all />

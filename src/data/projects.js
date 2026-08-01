@@ -29,8 +29,11 @@ export const projects = [
     orbitSpeed: 0.055,
     startAngle: 0.6,
     size: 1.05,
-    color: '#6fe7dc',
-    emissive: '#1c7f78',
+    // Raha's accent moved with the palette's secondary. Its surface shader is
+    // warm and organic, so the cool halo still reads as clinical instrumentation
+    // wrapped around biological material — the contrast is deliberate.
+    color: '#8b7cff',
+    emissive: '#3a2f7a',
     pattern: 'bands',
     surface: 'medical', // bioluminescent cellular tissue + sweeping scan laser
 

@@ -7,8 +7,11 @@
   --color-surface: #05080f;     /* OPAQUE panel base — no alpha, ever */
   --color-amber: #d98e4a;       /* Jupiter storm-band accent, primary highlight */
   --color-amber-dim: #8a5c30;
-  --color-cyan: #6fe7dc;        /* ice / data accent */
-  --color-cyan-dim: #2f6b66;
+  /* Secondary accent: indigo-violet, sitting between navy and purple (hue
+     ~250°). Bright enough to hold ~6:1 contrast against the near-black vacuum,
+     which matters because it carries small tracked label text. */
+  --color-violet: #8b7cff;
+  --color-violet-dim: #4a3fb0;
   --color-rose: #e4572e;        /* alert / station accent, used sparingly */
   --color-starlight: #f2f4f8;   /* primary text */
   --color-slate: #8791a3;       /* secondary text */
@@ -49,7 +52,7 @@
   --gutter: clamp(1rem, 2.1vw, 2.25rem);
 
   /* --- Elevation / glow -------------------------------------------------- */
-  --glow-cyan: 0 0 24px -6px rgba(111, 231, 220, 0.55);
+  --glow-violet: 0 0 24px -6px rgba(139, 124, 255, 0.55);
   --glow-amber: 0 0 24px -6px rgba(217, 142, 74, 0.55);
   --hairline: rgba(255, 255, 255, 0.08);
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
@@ -104,7 +107,7 @@ button {
 
 /* Visible keyboard focus everywhere, including on canvas-anchored HTML labels */
 :focus-visible {
-  outline: 2px solid var(--color-cyan);
+  outline: 2px solid var(--color-violet);
   outline-offset: 2px;
 }
 

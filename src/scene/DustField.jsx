@@ -146,7 +146,7 @@ export default function DustField({
       uTime: { value: 0 },
       uSize: { value: size },
       uColor: { value: new THREE.Color(color) },
-      uHotColor: { value: new THREE.Color('#8ff0ff') },
+      uHotColor: { value: new THREE.Color('#a99cff') },
       uPointer: { value: new THREE.Vector3(1e6, 1e6, 1e6) },
       uRadius: { value: 9 },
       uPush: { value: 2.6 },

@@ -94,7 +94,7 @@ const fragmentShader = /* glsl */ `
 `
 
 export default function AtmosphereShell({
-  color = '#6fe7dc',
+  color = '#8b7cff',
   scale = 1.14,
   intensity = 0.9,
   power = 2.6,
