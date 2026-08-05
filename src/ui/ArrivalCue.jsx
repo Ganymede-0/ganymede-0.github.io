@@ -1,5 +1,4 @@
 import { useEffect, useRef } from 'react'
-import { projects, CATEGORY } from '../data/projects'
 import { useNavigationStore, useCueVisible } from '../state/navigationStore'
 
 // -----------------------------------------------------------------------------
@@ -7,21 +6,20 @@ import { useNavigationStore, useCueVisible } from '../state/navigationStore'
 //
 // WHAT IT IS FOR
 // The failure mode this prevents: a visitor who is not a 3D-web native lands in
-// a dark scene of small moving spheres with no obvious verb. It names the three
-// bodies as real buttons rather than describing the interaction abstractly —
-// "select a body" assumes you already deduced the spheres are projects, whereas
-// naming Raha, Bayan and Sharqiyah proves it. Clicking a name flies the camera
-// exactly as clicking the planet does, so the cue doubles as a complete
-// alternative route in for anyone who would rather not chase a moving target,
-// keyboard users included.
+// a dark scene of small moving spheres with no obvious verb. One sentence names
+// what they are looking at, and then gets out of the way.
+//
+// It is only a sentence. Nothing here navigates — the CV panel on the left is
+// already a complete, keyboard-reachable route to every project, so a second
+// menu at the moment of arrival would add nothing and would turn the payoff of
+// the wormhole into a dialog box.
 //
 // WHY THE NEBULA IS GENERATED, NOT DOWNLOADED
 // A photographic nebula plate would be a fixed image: it cannot react to the
-// pointer, it cannot take on a project's colour, and it would have to be
-// hotlinked (fragile) or bundled (heavy) on a site that currently ships no
-// texture files at all. This is built from an SVG fractal-noise filter instead,
-// which gives a genuinely fractal silhouette — no two edges repeat — for a few
-// hundred bytes, and which can respond to input.
+// pointer, and it would have to be hotlinked (fragile) or bundled (heavy) on a
+// site that currently ships no texture files at all. This is built from an SVG
+// fractal-noise filter instead, which gives a genuinely fractal silhouette —
+// no two edges repeat — for a few hundred bytes, and which responds to input.
 //
 // THE SHAPE TRICK
 // `feTurbulence` generates fractal noise; `feDisplacementMap` then pushes every
@@ -54,8 +52,6 @@ const EMBERS = [
 
 export default function ArrivalCue() {
   const dismissOnboarding = useNavigationStore((s) => s.dismissOnboarding)
-  const focusBody = useNavigationStore((s) => s.focusBody)
-  const setHovered = useNavigationStore((s) => s.setHovered)
 
   const rootRef = useRef(null)
 
@@ -109,8 +105,6 @@ export default function ArrivalCue() {
   }, [eligible])
 
   if (!eligible) return null
-
-  const bodies = projects.filter((p) => p.category === CATEGORY.PLANET)
 
   return (
     <div className="nebula-cue" ref={rootRef} role="region" aria-label="Getting started">
@@ -176,39 +170,14 @@ export default function ArrivalCue() {
       </div>
 
       <div className="nebula-cue__content">
+        {/* The message, and nothing else.
+            An earlier version listed Raha, Bayan and Sharqiyah as buttons here.
+            It worked, but it turned a moment of arrival into a menu — and it
+            duplicated navigation the CV panel on the left already provides
+            completely and accessibly. One sentence lands harder, and leaves the
+            system itself as the thing the visitor looks at next. */}
         <p className="nebula-cue__lead">
           You&rsquo;ve arrived. Each planet is a project.
-        </p>
-
-        <ul className="nebula-cue__bodies">
-          {bodies.map((p) => (
-            <li key={p.id}>
-              <button
-                type="button"
-                className="nebula-cue__body"
-                style={{ '--body-accent': p.color }}
-                // Hovering a name tints the whole cloud to that project's
-                // accent and lights its planet in the scene at the same time,
-                // so the connection between this list and the bodies in orbit
-                // is demonstrated rather than asserted.
-                onMouseEnter={() => setHovered(p.id)}
-                onMouseLeave={() => setHovered(null)}
-                onFocus={() => setHovered(p.id)}
-                onBlur={() => setHovered(null)}
-                onClick={() => {
-                  dismissOnboarding()
-                  focusBody(p.id)
-                }}
-              >
-                <span className="nebula-cue__dot" aria-hidden="true" />
-                {p.name}
-              </button>
-            </li>
-          ))}
-        </ul>
-
-        <p className="nebula-cue__hint mono">
-          Or drag anywhere to look around · full CV on the left
         </p>
 
         <button

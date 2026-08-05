@@ -163,7 +163,7 @@ const coronaFrag = /* glsl */ `
   }
 `
 
-export default function Sun({ onReady, onStartApproach }) {
+export default function Sun({ onReady, onStartApproach, onSunHover }) {
   const coreRef = useRef()
 
   // EXPOSURE: this is the master brightness of the star and the value the whole
@@ -241,8 +241,12 @@ export default function Sun({ onReady, onStartApproach }) {
         onPointerOver={(e) => {
           e.stopPropagation()
           document.body.classList.add('is-pointing')
+          onSunHover?.(true)
         }}
-        onPointerOut={() => document.body.classList.remove('is-pointing')}
+        onPointerOut={() => {
+          document.body.classList.remove('is-pointing')
+          onSunHover?.(false)
+        }}
       >
         <shaderMaterial
           vertexShader={coreVert}

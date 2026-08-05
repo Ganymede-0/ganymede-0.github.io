@@ -2,9 +2,16 @@ import { create } from 'zustand'
 
 // Two levels of state, deliberately separate.
 //
-// stage: 'prologue' -> the scroll-driven approach; the page scrolls, the
-//                      prologue owns the camera, and the HUD is hidden.
-//        'system'    -> arrived; free-look orbital system, page scroll locked.
+// stage: 'system'    -> the landing view. Free-look orbital system, page scroll
+//                       locked. Everything is reachable from here.
+//        'diving'    -> the camera is falling into the star. ~1.4s, on rails.
+//        'prologue'  -> inside the star: the story, in its own dark space. The
+//                       page scrolls and the prologue owns the camera.
+//        'returning' -> the wormhole burst carrying the visitor back out. ~1s.
+//
+// The two transitional stages exist so that entering and leaving the story are
+// authored moments rather than cuts. They are the only states in the app where
+// neither the visitor nor the scroll position controls the camera.
 //
 // view:  'overview'      -> free-look orbital system, nothing focused
 //        'transitioning' -> camera is mid-flight (controls disabled)
@@ -27,6 +34,11 @@ export const useNavigationStore = create((set, get) => ({
   // Whether the approach has been run to completion (or skipped) at least once.
   // Controls whether the star still advertises itself with "Start here".
   hasSeenApproach: false,
+
+  // Pointer is over the photosphere. After the first run the star carries no
+  // permanent label — the invitation surfaces only on hover, so the body stays
+  // a star rather than a button with a star behind it.
+  sunHovered: false,
 
   // Set once the visitor has seen the "select a body" cue, so the onboarding
   // never nags on a second visit to the overview.
@@ -62,11 +74,37 @@ export const useNavigationStore = create((set, get) => ({
 
   dismissOnboarding: () => set({ onboarded: true }),
 
-  // Entering the approach — from the star, which is the only way in.
-  // Anything focused is released first, otherwise the camera would be fighting
-  // a focus tween the moment scroll takes over.
-  startApproach: () =>
-    set({ stage: 'prologue', view: 'overview', activeId: null, cvOpen: false }),
+  setSunHovered: (v) => set({ sunHovered: v }),
+
+  // --- Entering the story ---------------------------------------------------
+  // Clicking the star begins the DIVE, not the prologue. Anything focused is
+  // released first, otherwise the camera would be fighting a focus tween the
+  // moment the dive takes over.
+  // Takes NO arguments. It is wired straight to onClick in SunBeacon, and React
+  // passes the click event as the first argument — any parameter here would
+  // silently receive a SyntheticEvent instead of what it expected.
+  startApproach: () => {
+    if (get().stage !== 'system') return
+    set({
+      stage: 'diving',
+      view: 'overview',
+      activeId: null,
+      cvOpen: false,
+      sunHovered: false,
+    })
+  },
+
+  // Called by StarDive when the camera has reached the photosphere and the
+  // screen is fully white — the one frame where a teleport is invisible.
+  enterPrologue: () => set({ stage: 'prologue' }),
+
+  // --- Leaving the story ----------------------------------------------------
+  // Reaching the end of the scroll starts the wormhole burst rather than
+  // cutting straight back. `enterSystem` is what actually lands.
+  beginReturn: () => {
+    if (get().stage !== 'prologue') return
+    set({ stage: 'returning' })
+  },
 
   focusBody: (id) => {
     if (get().view === 'transitioning') return

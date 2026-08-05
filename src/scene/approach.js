@@ -39,3 +39,32 @@ export function easeApproach(p) {
 // that, leaving the last beat legible and giving the whole wormhole to the
 // runway, where there is no text left to compete with it.
 export const WARP_START = 0.8
+
+// -----------------------------------------------------------------------------
+// THE INNER UNIVERSE — where the story is read.
+//
+// The story does not happen in the solar system. Clicking the star falls INTO
+// it and comes out somewhere else: a quiet pocket of deep space with the system
+// nowhere in sight. That separation is the point — it is why the narrative gets
+// its own dark, uncluttered backdrop instead of competing with three orbiting
+// planets for attention.
+//
+// PROLOGUE_RADIUS is bounded by two hard constraints, and violating either one
+// is what produced the black disc in the middle of the frame:
+//
+//   * The nebula is a BackSide sphere of radius 200. Outside it, front faces
+//     are culled and there is nothing to see.
+//   * The camera's far plane is 400. A ray through screen centre reaches the
+//     far inner wall of the shell at (radius + 200) units. At the old start
+//     distance of 219 that was 419 — beyond the far plane, so the centre of
+//     the screen clipped to black while the edges, whose intersections are
+//     nearer, still rendered.
+//
+// At 96 the far wall sits at 296, comfortably inside the far plane, and the
+// camera is deep enough inside the shell to be surrounded by gas on every side.
+export const PROLOGUE_RADIUS = 96
+
+// How far the camera drifts over the whole read. Small on purpose: this is a
+// slow current, not a journey. The scroll is carrying TEXT, and a camera making
+// large moves underneath it turns reading into a chore.
+export const PROLOGUE_DRIFT = 26

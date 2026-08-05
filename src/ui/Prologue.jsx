@@ -10,11 +10,19 @@ import { useReducedMotion } from '../scene/useReducedMotion'
 //
 // THE ONE RULE: this is scroll-DRIVEN, never scroll-JACKED.
 //
-// The page scrolls natively. No wheel events are intercepted, no scroll
-// distance is remapped, nothing snaps. The scrollbar tells the truth about
-// position and length, Page Down / Home / End / spacebar all behave normally,
-// and a screen reader walks real headings and paragraphs in order. Scroll
-// position is READ and used to drive the camera; it is never taken over.
+// The page scrolls natively. No wheel events are intercepted and no scroll
+// distance is remapped. The scrollbar tells the truth about position and
+// length, Page Down / Home / End / spacebar all behave normally, and a screen
+// reader walks real headings and paragraphs in order. Scroll position is READ
+// and used to drive the camera; it is never taken over.
+//
+// One scroll advances exactly one chapter, but that is CSS `scroll-snap-type`
+// doing it — the browser's own snapping, applied to real sections. That is a
+// very different thing from intercepting wheel events and animating the page
+// yourself: the input is still the platform's, so momentum, trackpad gestures,
+// keyboard paging and assistive tech all keep working. Scroll snap is the
+// supported way to get "one flick, one slide"; scroll hijacking is the way that
+// breaks the page.
 //
 // This matters more than it sounds. Nielsen Norman Group's scrolljacking
 // research found most participants were at least mildly disoriented by hijacked
@@ -30,7 +38,7 @@ import { useReducedMotion } from '../scene/useReducedMotion'
 
 export default function Prologue() {
   const stage = useNavigationStore((s) => s.stage)
-  const enterSystem = useNavigationStore((s) => s.enterSystem)
+  const beginReturn = useNavigationStore((s) => s.beginReturn)
   const reducedMotion = useReducedMotion()
 
   const [active, setActive] = useState(0)
@@ -78,9 +86,12 @@ export default function Prologue() {
       approach.warp = smoothstep(WARP_START, 1, p)
       setProgress(p)
 
-      // Arrival. The wormhole is fully ramped by this point, so committing here
-      // reads as coming out the far side of it rather than as a cut.
-      if (p >= 0.995) enterSystem()
+      // Reaching the end starts the RETURN BURST rather than cutting straight
+      // back. With scroll-snap the final snap can complete in a couple of
+      // hundred milliseconds, which is not enough wormhole to be worth having —
+      // so the burst is an authored fixed-length sequence, and plays identically
+      // whether the visitor crept to the bottom or flung the scrollbar there.
+      if (p >= 0.995) beginReturn()
     }
 
     // rAF-throttled: scroll can fire faster than the display refreshes, and the
@@ -98,7 +109,7 @@ export default function Prologue() {
       window.removeEventListener('scroll', onScroll)
       window.removeEventListener('resize', onScroll)
     }
-  }, [isPrologue, enterSystem])
+  }, [isPrologue, beginReturn])
 
   // Reveal each chapter as it arrives, and track which one holds the middle of
   // the screen for the progress rail. IntersectionObserver rather than scroll
@@ -154,8 +165,18 @@ export default function Prologue() {
 
   return (
     <>
+      {/* Story veil.
+          The inner universe is darker than the system, so the résumé copy has
+          a calm ground to sit on instead of competing with lit gas. It is a
+          separate fixed layer rather than a change to the scene's own lighting
+          because the scene's exposure is authored as a whole — dimming lights
+          or tone mapping to darken a backdrop would drag the star and the
+          bloom down with it. It fades in over its own duration, so entering
+          the story is a gradual settling rather than a step change. */}
+      <div className="prologue__veil" aria-hidden="true" />
+
       {/* Always available, from the first frame. Not a hidden escape hatch. */}
-      <button type="button" className="prologue__skip" onClick={enterSystem}>
+      <button type="button" className="prologue__skip" onClick={beginReturn}>
         <span>Skip to the projects</span>
         <span className="prologue__skip-arrow" aria-hidden="true">→</span>
       </button>
@@ -239,7 +260,7 @@ export default function Prologue() {
                 <button
                   type="button"
                   className="prologue__enter"
-                  onClick={enterSystem}
+                  onClick={beginReturn}
                 >
                   Enter the system
                   <span aria-hidden="true">→</span>

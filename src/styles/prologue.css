@@ -20,6 +20,50 @@
   display: block;
 }
 
+/* --- One scroll, one slide -------------------------------------------------
+   Native CSS scroll snapping, applied to the real document scroller. This is
+   NOT scroll hijacking: no wheel event is intercepted and no scroll distance is
+   remapped, so momentum, trackpad gestures, keyboard paging, the scrollbar and
+   assistive technology all keep working exactly as the platform intends. The
+   browser simply chooses a resting position from the snap points we declare.
+
+   `scroll-snap-stop: always` is the part that guarantees "one flick advances
+   exactly one chapter" — without it a fast scroll is allowed to fly past
+   several snap points before settling. */
+html:has(body:not(.is-system)) {
+  scroll-snap-type: y mandatory;
+  /* Smooth out the snap itself. `scroll-behavior` governs the animation the
+     browser runs when it snaps, so this is what turns a hard jump into a glide. */
+  scroll-behavior: smooth;
+}
+
+.prologue__chapter,
+.prologue__runway {
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
+/* --- Story veil ------------------------------------------------------------
+   Darkens the inner universe so the copy has a calm ground. Fixed, so it
+   covers the canvas without scrolling with the text, and click-through so the
+   scene behind stays draggable. */
+.prologue__veil {
+  position: fixed;
+  inset: 0;
+  z-index: 19;
+  pointer-events: none;
+  /* Weighted toward the edges: the centre stays a little more open so the gas
+     behind the reading column is not flattened to a single dead tone. */
+  background:
+    radial-gradient(120% 100% at 50% 50%, rgba(1, 2, 6, 0.52) 0%, rgba(1, 2, 6, 0.78) 100%);
+  animation: prologue-veil-in 1.6s var(--ease-out) both;
+}
+
+@keyframes prologue-veil-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
 /* Scroll runway after the final chapter — see Prologue.jsx. Sized so the
    arrival beat sits readable on screen for a comfortable stretch before the
    commit threshold, with the tail of the scroll given over to the wormhole. */
@@ -437,4 +481,83 @@
     transition: none;
   }
   .prologue__cue-line { animation: none; }
+}
+
+/* ===========================================================================
+   STAR GATE — the light that covers the cut.
+   ---------------------------------------------------------------------------
+   Both transitions end on a frame of pure white, and that frame is where the
+   camera is actually teleported. See StarGate.jsx for why this is DOM and not
+   a quad inside the scene.
+
+   The gradient blooms from the centre outward rather than filling flat: at the
+   end of the dive the star IS the centre of the frame, so the light has to
+   grow out of it. A flat white rectangle reads as a page transition; this
+   reads as a star.
+   =========================================================================== */
+
+.star-gate {
+  position: fixed;
+  inset: 0;
+  /* Above everything, including the drei <Html> layer that carries planet
+     labels — otherwise labels would float over a white screen. */
+  z-index: 90;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      58% 58% at 50% 50%,
+      #fffdf7 0%,
+      #ffe9c4 34%,
+      #ffb765 62%,
+      rgba(255, 140, 60, 0) 100%
+    );
+}
+
+/* Ramping up — the star swallowing the frame, or the wormhole peaking.
+   `ease-in` so almost all the brightness arrives in the last third: the light
+   should bloom suddenly at the end of the fall, not wash in from the start and
+   hide the approach to the surface. */
+.star-gate--in {
+  animation: star-gate-in 1.4s cubic-bezier(0.7, 0, 0.9, 0.4) both;
+}
+
+/* The return burst is shorter than the dive, and its timing is set in
+   StarDive.jsx — these two durations must stay in step. */
+.star-gate--returning {
+  animation-duration: 0.95s;
+}
+
+@keyframes star-gate-in {
+  from { opacity: 0; scale: 0.55; }
+  to   { opacity: 1; scale: 1.6; }
+}
+
+/* Landing. Opaque, then off — revealing wherever the visitor now is.
+   Slower than the ramp so arrivals feel like emerging rather than snapping. */
+.star-gate--out {
+  animation: star-gate-out 1.1s var(--ease-out) both;
+}
+
+@keyframes star-gate-out {
+  from { opacity: 1; scale: 1.6; }
+  to   { opacity: 0; scale: 2.4; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Keep the flash — it is what makes the cut legible — but drop the scaling
+     bloom and shorten it to a plain cross-fade. */
+  .star-gate--in  { animation: star-gate-fade-in 0.25s linear both; }
+  .star-gate--out { animation: star-gate-fade-out 0.3s linear both; }
+  .star-gate--returning { animation-duration: 0.2s; }
+  .prologue__veil { animation: none; }
+}
+
+@keyframes star-gate-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes star-gate-fade-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
 }

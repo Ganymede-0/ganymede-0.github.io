@@ -1,51 +1,53 @@
 import { useEffect } from 'react'
 import { useThree, useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
-import { approach, easeApproach } from './approach'
-import { framing } from './framing'
+import { approach, easeApproach, PROLOGUE_RADIUS, PROLOGUE_DRIFT } from './approach'
 import { useNavigationStore } from '../state/navigationStore'
 
 // -----------------------------------------------------------------------------
-// The approach flight.
+// The camera while the story is being read.
 //
-// While the prologue is on screen, this owns the camera outright: scroll
-// position is the only input, and the camera is recomputed from it every frame.
-// Nothing tweens and nothing is stateful, which is the whole point — the flight
-// is a pure function of scroll, so it scrubs perfectly in both directions. A
-// timeline-based intro would only play forwards and would break the moment
-// someone scrolled back up to re-read a line.
+// WHERE THIS IS
+// Not in the solar system. The visitor fell into the star and came out in a
+// pocket of deep space — see PROLOGUE_RADIUS in approach.js for the geometry,
+// and for why the previous version's start position produced a black disc in
+// the middle of the frame.
 //
-// THE SHAPE OF THE FLIGHT
-// The camera starts far out and almost edge-on to the orbital plane, so the
-// system first reads as a thin bright line — an object seen from interstellar
-// distance. As the visitor scrolls it closes distance and rises toward the
-// final three-quarter framing, opening the plane out into the full system. It
-// finishes exactly at `framing.position`, so the handover to OrbitControls on
-// arrival has no visible jump.
+// WHAT IT DOES
+// Almost nothing, deliberately. The camera drifts along a shallow arc and turns
+// slowly, so the gas behind the text has parallax and the space feels inhabited
+// — but it never travels far and never accelerates. The scroll is carrying a
+// résumé; a camera making big moves underneath it competes with the words for
+// the same attention and makes reading tiring.
 //
-// Distance is expressed as a MULTIPLE of the responsive framing distance rather
-// than in absolute units, so the flight is automatically correct on a phone and
-// on an ultrawide — both of which need very different final distances.
+// It is still a PURE FUNCTION of scroll, with no timeline and no state, so the
+// whole thing scrubs perfectly in both directions. Scrolling back to re-read a
+// line rewinds the camera exactly, which a keyframed intro cannot do.
 // -----------------------------------------------------------------------------
 
 const UP = new THREE.Vector3(0, 1, 0)
-const _dir = new THREE.Vector3()
+const _pos = new THREE.Vector3()
+const _look = new THREE.Vector3()
 
-/** How much further out the flight begins, as a multiple of final distance. */
-const START_DISTANCE_MULTIPLE = 7.5
-/** Vertical flattening at the start: 0.12 = almost exactly edge-on. */
-const START_FLATTEN = 0.12
-/** Azimuth swept during the approach, radians. */
-const START_AZIMUTH = 1.15
+/** Where in the shell the story sits. Away from the system, deep in gas. */
+const ANCHOR = new THREE.Vector3(0.38, 0.16, -0.91).normalize()
 
 export default function ApproachRig() {
   const { camera } = useThree()
   const stage = useNavigationStore((s) => s.stage)
 
-  // `active` is read by CameraRig and Wormhole from the module object rather
-  // than from the store, so neither has to re-render to find out.
+  // Read from the module object by CameraRig and Wormhole, so neither has to
+  // re-render to find out who owns the camera.
   useEffect(() => {
     approach.active = stage === 'prologue'
+  }, [stage])
+
+  // Entering the story places the camera immediately. This runs while the
+  // screen is still white from the dive, so the jump from the photosphere to
+  // the far side of the shell is never seen.
+  useEffect(() => {
+    if (stage !== 'prologue') return
+    approach.eased = easeApproach(approach.progress)
   }, [stage])
 
   useFrame(() => {
@@ -54,29 +56,29 @@ export default function ApproachRig() {
     const p = easeApproach(approach.progress)
     approach.eased = p
 
-    const distance = THREE.MathUtils.lerp(
-      framing.distance * START_DISTANCE_MULTIPLE,
-      framing.distance,
-      p
-    )
+    // A shallow arc: the camera swings through a small angle and rises a
+    // little, so the nebula behind the text shears rather than sliding flat.
+    const angle = (p - 0.5) * 0.42
+    _pos
+      .copy(ANCHOR)
+      .applyAxisAngle(UP, angle)
+      .multiplyScalar(PROLOGUE_RADIUS - p * PROLOGUE_DRIFT)
+    _pos.y += (p - 0.5) * 12
 
-    // Start edge-on, rise to the framing elevation.
-    _dir.copy(framing.position).normalize()
-    _dir.y *= THREE.MathUtils.lerp(START_FLATTEN, 1, p)
-    _dir.normalize()
+    camera.position.copy(_pos)
 
-    // Sweep around the system as it grows, so the approach has parallax rather
-    // than being a straight dolly down one axis.
-    _dir.applyAxisAngle(UP, (1 - p) * START_AZIMUTH)
+    // Look along the drift rather than at any particular object — there is
+    // nothing out here to look AT, and aiming at the origin would put the
+    // distant system dead centre behind every paragraph.
+    _look.copy(_pos).multiplyScalar(0.82)
+    _look.y -= 6
+    camera.lookAt(_look)
 
-    camera.position.copy(_dir).multiplyScalar(distance)
-    camera.lookAt(0, 0, 0)
-
-    // A slow roll through the wormhole. Applied after lookAt, which resets
-    // orientation. It peaks mid-warp and returns to level on arrival, so the
-    // horizon is straight the instant the visitor takes control.
+    // A slow roll through the wormhole, applied after lookAt (which resets
+    // orientation). It peaks mid-warp and returns to level, so the horizon is
+    // straight the instant the visitor takes control again.
     if (approach.warp > 0.001) {
-      camera.rotateZ(Math.sin(approach.warp * Math.PI) * 0.22)
+      camera.rotateZ(Math.sin(approach.warp * Math.PI) * 0.26)
     }
   })
 

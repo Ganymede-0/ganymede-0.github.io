@@ -2,6 +2,7 @@ import { Suspense } from 'react'
 import Scene from './scene/Scene'
 import Hud from './ui/Hud'
 import Prologue from './ui/Prologue'
+import StarGate from './ui/StarGate'
 import ArrivalCue from './ui/ArrivalCue'
 import MissionPanel from './ui/MissionPanel'
 import CvPanel from './ui/CvPanel'
@@ -39,6 +40,10 @@ export default function App() {
 
       {/* Scroll-driven approach. Renders null once the visitor has arrived. */}
       <Prologue />
+
+      {/* The light that covers both teleports — see StarGate. Above the
+          prologue, below the cursor. */}
+      <StarGate />
 
       {/* OUTSIDE .app, and last. Giving .app a z-index made it a stacking
           context, which traps everything inside it — however high the reticle's

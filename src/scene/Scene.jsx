@@ -25,6 +25,7 @@ import Station from './Station'
 import OrbitPath from './OrbitPath'
 import CameraRig from './CameraRig'
 import ApproachRig from './ApproachRig'
+import StarDive from './StarDive'
 import Wormhole from './Wormhole'
 import ResponsiveFraming from './ResponsiveFraming'
 import Lighting from './Lighting'
@@ -51,6 +52,7 @@ export default function Scene() {
   const returnToOverview = useNavigationStore((s) => s.returnToOverview)
   const dismissOnboarding = useNavigationStore((s) => s.dismissOnboarding)
   const startApproach = useNavigationStore((s) => s.startApproach)
+  const setSunHovered = useNavigationStore((s) => s.setSunHovered)
   const view = useNavigationStore((s) => s.view)
   const reducedMotion = useReducedMotion()
 
@@ -63,7 +65,13 @@ export default function Scene() {
   return (
     <Canvas
       dpr={dpr}
-      camera={{ position: [0, 11, 27], fov: 46, near: 0.1, far: 400 }}
+      // far: the nebula is a BackSide sphere of radius 200, so the furthest
+      // thing that must stay visible is its far inner wall — (camera distance
+      // from origin) + 200. At 400 this clipped the moment the camera moved
+      // any distance out, punching a black disc through the middle of the frame
+      // while the edges, whose intersections are nearer, still rendered. 700
+      // covers the whole shell from anywhere inside it, with room to spare.
+      camera={{ position: [0, 11, 27], fov: 46, near: 0.1, far: 700 }}
       gl={{
         antialias: false,
         powerPreference: 'high-performance',
@@ -124,7 +132,11 @@ export default function Scene() {
           />
         </ParallaxRig>
 
-        <Sun onReady={setSunMesh} onStartApproach={startApproach} />
+        <Sun
+          onReady={setSunMesh}
+          onStartApproach={startApproach}
+          onSunHover={setSunHovered}
+        />
         <SunBeacon />
 
         {projects.map((project) => (
@@ -166,6 +178,9 @@ export default function Scene() {
           render as soon as any useFrame declares a non-zero priority, so
           sequencing by priority number is not an option. */}
       <ApproachRig />
+      {/* Owns the camera during the two authored transitions — the fall into
+          the star, and the wormhole burst back out. */}
+      <StarDive />
       {/* The wormhole. Always mounted and driven entirely by scroll-derived
           warp, so at rest it costs one draw call of fully-transparent geometry
           and never changes the composer's shape. */}

@@ -12,10 +12,14 @@ import { useNavigationStore, useCueVisible } from '../state/navigationStore'
 // that makes sense here.
 //
 // The invitation is loud exactly once. Before the approach has ever been run it
-// is a labelled beacon with a pulse ring, impossible to miss. Afterwards the
-// label retires and the star keeps a quiet halo on hover — the door is still
-// there, it has just stopped announcing itself to someone who has already
-// walked through it.
+// is a labelled beacon with a pulse ring, impossible to miss.
+//
+// Afterwards it disappears entirely and returns ONLY on hover. That is the
+// point: the star is the most beautiful object in the scene and it is the
+// visitor's own identity in this system — parking a permanent caption on it
+// turns it into a button with a star behind it. A body that reveals what it
+// does when you reach for it stays a body. The door has not moved; it has
+// simply stopped talking to someone who already walked through it.
 //
 // Rendered as drei <Html> rather than 3D geometry so the type stays crisp and
 // screen-sized at any camera distance, and so it is a real focusable <button>
@@ -29,6 +33,7 @@ export default function SunBeacon() {
   const cvOpen = useNavigationStore((s) => s.cvOpen)
   const hasSeenApproach = useNavigationStore((s) => s.hasSeenApproach)
   const startApproach = useNavigationStore((s) => s.startApproach)
+  const sunHovered = useNavigationStore((s) => s.sunHovered)
   const cueVisible = useCueVisible()
 
   // Never during the approach itself, mid-flight, or under an open panel.
@@ -41,6 +46,16 @@ export default function SunBeacon() {
   if (stage !== 'system' || view !== 'overview' || cvOpen || cueVisible) return null
 
   const first = !hasSeenApproach
+
+  // After the first run the label is only VISIBLE while the pointer is on the
+  // star — but it stays in the document, hidden by opacity rather than
+  // unmounted, and reappears on keyboard focus.
+  //
+  // That distinction matters: unmounting it would make the entire story
+  // unreachable without a mouse, since the only other way in is clicking a
+  // sphere in a WebGL canvas. Hidden-but-focusable keeps the star clean and
+  // keeps the keyboard path intact.
+  const revealed = first || sunHovered
 
   return (
     <Html
@@ -56,7 +71,9 @@ export default function SunBeacon() {
     >
       <button
         type="button"
-        className={`sun-beacon ${first ? 'is-first' : 'is-quiet'}`}
+        className={`sun-beacon ${first ? 'is-first' : 'is-quiet'} ${
+          revealed ? 'is-revealed' : ''
+        }`}
         onClick={startApproach}
         aria-label={
           first

@@ -438,11 +438,25 @@
 }
 
 /* --- Retired state ---------------------------------------------------------
-   Once the story has been seen the beacon stops competing for attention: no
-   rings, no animation, and it only reaches full strength on hover. */
-.sun-beacon.is-quiet { opacity: 0.42; transition: opacity 0.4s var(--ease-out); }
-.sun-beacon.is-quiet:hover,
-.sun-beacon.is-quiet:focus-visible { opacity: 1; }
+   Once the story has been seen the beacon disappears completely and comes back
+   only when the pointer reaches the star — the body stays a star instead of
+   becoming a captioned button.
+
+   Hidden with opacity, NOT unmounted, and pointer-events released so an
+   invisible box never sits over the scene catching drags. A button with
+   `pointer-events: none` is still keyboard-focusable, which is what keeps the
+   story reachable without a mouse. */
+.sun-beacon.is-quiet {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.45s var(--ease-out);
+}
+
+.sun-beacon.is-quiet.is-revealed,
+.sun-beacon.is-quiet:focus-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
 
 .sun-beacon.is-quiet .sun-beacon__label {
   padding: 0.4rem 0.85rem;
