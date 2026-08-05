@@ -347,13 +347,23 @@
 /* --- Pulse rings -----------------------------------------------------------
    Centred on the star itself, below the label. Two rings on offset delays read
    as a repeating signal rather than a single throb. */
+/* Geometry note, from a rendered phone screenshot: at 26px below the label and
+   scaling to 1.5, the ring's top edge travelled to roughly 6px ABOVE the
+   label's bottom and drew a line straight through the subtitle. A ring that
+   crosses its own caption reads as a rendering fault, not as a pulse.
+
+   The clearance is now derived rather than guessed. Ring centre sits at
+   (offset + radius) below the label; at peak scale its top edge is
+   (offset + radius - radius x scale) below. With offset 40, radius 60 and peak
+   1.3 that is 40 + 60 - 78 = 22px of clearance — positive at every point in
+   the animation, so it can never reach the text. */
 .sun-beacon__pulse {
   position: absolute;
   left: 50%;
   top: 100%;
-  width: 130px;
-  height: 130px;
-  margin: 26px 0 0 -65px;
+  width: 120px;
+  height: 120px;
+  margin: 40px 0 0 -60px;
   border: 1px solid var(--color-amber);
   border-radius: 50%;
   opacity: 0;

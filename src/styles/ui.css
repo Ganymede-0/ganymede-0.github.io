@@ -1227,6 +1227,14 @@ body.is-system {
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
     padding-bottom: 2px;
+    /* Fade the trailing edge so the row visibly CONTINUES rather than simply
+       ending mid-word. Six sections never fit a phone's width, the scrollbar is
+       hidden, and a strip cut off at the screen edge reads as broken layout
+       rather than as something scrollable — which risks a recruiter never
+       discovering three of the six sections.
+       The mask travels with the scroll, so it disappears at the end. */
+    -webkit-mask-image: linear-gradient(90deg, #000 82%, transparent 100%);
+    mask-image: linear-gradient(90deg, #000 82%, transparent 100%);
   }
   .cv-nav ul::-webkit-scrollbar { display: none; }
   .cv-nav li { flex: 0 0 auto; }

@@ -594,6 +594,36 @@ html {
   .prologue__dot.is-active .prologue__dot-label { max-width: 7rem; }
 }
 
+/* --- Narrow portrait -------------------------------------------------------
+   Measured on real devices: at 375x667 the evidence chapter needed 698px of
+   content in a 507px box, and its third statistic fell clean off the slide.
+   The cause is width, not height — the stat grid collapsed to a single column,
+   so three cards stacked to ~350px.
+
+   The height-based compaction below only fires under 620px tall, which no
+   portrait phone is. Narrow screens need their own compaction. */
+@media (max-width: 560px) {
+  .prologue__stats {
+    /* Two columns rather than one. 8rem minimum fits a pair inside a 343px
+       content column, which halves the stack height at a stroke. */
+    grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+    margin-top: 1.4rem;
+    gap: 0.55rem;
+  }
+
+  .prologue__stats li { padding: 0.7rem 0.75rem; gap: 0.2rem; }
+  .prologue__stat-value { font-size: 1.35rem; }
+  .prologue__stat-label { font-size: 0.55rem; letter-spacing: 0.12em; }
+  /* The note is the first thing to go: it is supporting detail, and three of
+     them cost more vertical space than everything else in the chapter. */
+  .prologue__stat-note { display: none; }
+
+  .prologue__body { margin-top: 0; }
+  .prologue__meta { margin-top: 1.2rem; }
+  .prologue__tags { margin-top: 1.2rem; gap: 0.35rem; }
+  .prologue__tags li { padding: 0.3rem 0.55rem; font-size: 0.6rem; }
+}
+
 @media (max-width: 900px) {
   .prologue__chapter {
     max-width: none;
@@ -615,6 +645,13 @@ html {
     bottom: calc(var(--safe-b) + 1rem);
     right: 50%;
     translate: 50% 0;
+  }
+
+  /* Skip moves to the bottom centre on a phone, where it sat directly on top of
+     the last line of chapter copy. The chapter has to reserve that space —
+     affordable now that the stat grid above has given ~200px back. */
+  .prologue__chapter {
+    padding-bottom: calc(var(--safe-b) + 4.75rem);
   }
 
   .prologue__actions { width: 100%; }
@@ -642,6 +679,46 @@ html {
   .prologue__tags { margin-top: 1rem; }
   .prologue__meta { margin-top: 1rem; }
   .prologue__actions { margin-top: 1.2rem; }
+}
+
+/* --- The narrowest screens still in service --------------------------------
+   320px (iPhone SE 1st gen / iPhone 5) is the floor, and it is the hardest
+   case in the whole site: 568px tall AND 320px wide, so it matches the short
+   query and the narrow one at once.
+
+   THIS BLOCK MUST STAY LAST. A 320x568 device also matches `max-height: 620px`
+   above, which sets its own body size — an earlier placement lost the cascade
+   to it and the chapter still overflowed by 52px.
+
+   Measured there, the "what I do" chapter ran 61px past its slide: at that
+   width the body wraps to eleven lines, and eleven lines of leading outweighs
+   everything else in the chapter combined. Three things give way, in order of
+   how little they cost:
+
+   1. The capability tags are hidden. They restate keywords already carried by
+      the body copy, the HUD identity line and the CV — the most decorative
+      thing on the slide, and the most expensive.
+   2. Padding tightens, including the reserved space under the Skip control,
+      which was sized generously for larger phones.
+   3. Leading drops to 1.45. Still comfortable at a 34-character measure, and
+      it recovers more than any font-size change could without making the copy
+      genuinely small.
+   Type size is reduced least, because this is the screen where legibility has
+   the least margin to give. */
+@media (max-width: 360px) {
+  .prologue__chapter {
+    padding-top: calc(var(--safe-t) + 1.4rem);
+    padding-bottom: calc(var(--safe-b) + 3.5rem);
+  }
+
+  .prologue__title { font-size: 1.4rem; margin-bottom: 0.6rem; }
+  .prologue__kicker { margin-bottom: 0.7rem; font-size: 0.6rem; }
+  .prologue__lead { font-size: 0.92rem; margin-bottom: 0.7rem; }
+  .prologue__body { font-size: 0.82rem; line-height: 1.45; }
+  .prologue__tags { display: none; }
+  .prologue__stats { margin-top: 1rem; }
+  .prologue__meta { margin-top: 0.9rem; font-size: 0.6rem; }
+  .prologue__actions { margin-top: 1.1rem; }
 }
 
 /* Reduced motion: the sequence still works — it is scroll, and scroll is not a
