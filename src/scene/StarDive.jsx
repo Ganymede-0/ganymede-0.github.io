@@ -46,6 +46,7 @@ export default function StarDive() {
   const { camera } = useThree()
   const stage = useNavigationStore((s) => s.stage)
   const enterPrologue = useNavigationStore((s) => s.enterPrologue)
+  const beginEmerge = useNavigationStore((s) => s.beginEmerge)
   const enterSystem = useNavigationStore((s) => s.enterSystem)
   const reducedMotion = useReducedMotion()
   const tweenRef = useRef(null)
@@ -102,28 +103,60 @@ export default function StarDive() {
     // or flung the scrollbar there.
     const tl = gsap.timeline({
       onComplete: () => {
-        // Land the camera BEFORE handing control back.
+        // Put the camera back AT the photosphere, under cover of the white
+        // frame — then let it rise out. The visitor left through the star, so
+        // they come back through the star.
         //
-        // The story is read from ~96 units out in a far pocket of the shell.
-        // OrbitControls mounts the instant the stage becomes 'system' and
-        // clamps the camera to maxDistance (~42) on its very first update, so
-        // without this the visitor would watch the camera get yanked in from
-        // the middle of nowhere. Placing it here means the move happens on the
-        // frame where the screen is pure white, and is never seen.
-        camera.position.copy(framing.position)
+        // Teleporting straight to the system framing here (the earlier
+        // behaviour) worked, but it made every exit a hard cut: the screen
+        // flashed and the system was simply there. Landing at the surface and
+        // pulling back turns the return into a reveal, and makes "Skip to the
+        // projects" a journey rather than a dismissal.
+        _dir.copy(framing.position).normalize()
+        camera.position.copy(_dir).multiplyScalar(DIVE_RADIUS)
         camera.lookAt(OVERVIEW_TARGET)
         camera.rotation.z = 0
 
-        // The dive froze the orbits so the system held still while the story
-        // was being read. Coming back has to start them turning again, or the
-        // visitor lands in a dead, motionless system.
+        // The dive slowed the orbits right down for the story. Bring them back
+        // to full speed before the reveal, so the system the visitor rises into
+        // is already alive.
         orbitClock.scale = 1
+        approach.warp = 0
 
-        enterSystem()
+        beginEmerge()
       },
     })
     tweenRef.current = tl
     tl.to(approach, { warp: 1, duration: duration * 0.55, ease: 'power2.in' }, 0)
+
+    return () => tl.kill()
+  }, [stage, camera, beginEmerge, reducedMotion])
+
+  // --- Rising out of the star ----------------------------------------------
+  // The camera pulls back from the photosphere to the system framing on a
+  // decelerating curve, so the whole system opens out of the light. This is the
+  // half of the return the visitor actually watches — the wormhole and the
+  // flash are the setup, this is the payoff.
+  useEffect(() => {
+    if (stage !== 'emerging') return
+
+    tweenRef.current?.kill()
+    const duration = reducedMotion ? 0.25 : 1.9
+
+    const tl = gsap.timeline({ onComplete: enterSystem })
+    tweenRef.current = tl
+    tl.to(
+      camera.position,
+      {
+        x: framing.position.x,
+        y: framing.position.y,
+        z: framing.position.z,
+        duration,
+        // Decelerating: rushing away from the star, then settling into frame.
+        ease: 'power3.out',
+      },
+      0
+    )
 
     return () => tl.kill()
   }, [stage, camera, enterSystem, reducedMotion])
@@ -140,10 +173,11 @@ export default function StarDive() {
     }
   })
 
-  // Keep the star centred through both transitions. The dive is a straight line
-  // toward the origin, so this only ever removes drift.
+  // Keep the star centred through both transitions. GSAP is tweening position
+  // only; without re-aiming every frame the view would drift off the star as it
+  // travels, and the emergence would arrive pointing at empty space.
   useFrame(() => {
-    if (stage === 'diving') camera.lookAt(0, 0, 0)
+    if (stage === 'diving' || stage === 'emerging') camera.lookAt(OVERVIEW_TARGET)
   })
 
   return null

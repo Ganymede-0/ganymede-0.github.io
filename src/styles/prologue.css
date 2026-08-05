@@ -163,27 +163,54 @@ html:has(body:not(.is-system)) {
 }
 
 /* --- Evidence chapter ------------------------------------------------------
-   The numbers are the payload of this beat, so they are set at display scale
-   and the explanatory note is subordinate to them. A recruiter scanning should
-   take all three in without reading a full sentence. */
+   Redesigned from a stack of bordered rows into a responsive grid of quiet
+   cards. The old version hung every stat off a single hairline rule, which at
+   narrow widths collapsed into one long ladder of text with no visual anchor,
+   and at wide widths left the numbers stranded in a thin column down the left.
+
+   These sit in an auto-fitting grid instead, so the same markup is a row of
+   three on a desktop and a single column on a phone with no breakpoint doing
+   the work. The number is the headline; everything else is support. */
 .prologue__stats {
   list-style: none;
   margin: 2.4rem 0 0;
   padding: 0;
   display: grid;
-  gap: 1.6rem;
+  /* auto-fit + minmax is what makes this size itself to the page rather than to
+     a guess about the page. */
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: 0.75rem;
 }
 
 .prologue__stats li {
+  position: relative;
   display: grid;
-  gap: 0.3rem;
-  padding-left: 1rem;
-  border-left: 1px solid var(--color-panel-line);
+  gap: 0.35rem;
+  padding: 1.1rem 1rem;
+  border-radius: 14px;
+  /* A faint lit face rather than a box: enough to group the three, not enough
+     to become UI chrome sitting on top of a starfield. */
+  background:
+    linear-gradient(160deg, rgba(139, 124, 255, 0.09), rgba(4, 7, 16, 0.32));
+  border: 1px solid rgba(139, 124, 255, 0.16);
+  overflow: hidden;
+}
+
+/* A soft violet bloom bleeding in from the top-left corner, so each card reads
+   as lit by something rather than filled with a flat tint. */
+.prologue__stats li::before {
+  content: '';
+  position: absolute;
+  inset: -40% 40% 40% -40%;
+  background: radial-gradient(circle closest-side, rgba(139, 124, 255, 0.5), transparent);
+  filter: blur(22px);
+  pointer-events: none;
 }
 
 .prologue__stat-value {
+  position: relative;
   font-family: var(--font-display);
-  font-size: clamp(1.6rem, 3.4vw, 2.3rem);
+  font-size: clamp(1.5rem, 2.6vw, 2rem);
   font-weight: var(--w-xbold);
   letter-spacing: -0.02em;
   line-height: 1;
@@ -191,15 +218,17 @@ html:has(body:not(.is-system)) {
 }
 
 .prologue__stat-label {
-  font-size: 0.68rem;
+  position: relative;
+  font-size: 0.62rem;
   font-weight: var(--w-semi);
-  letter-spacing: 0.2em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--color-violet);
 }
 
 .prologue__stat-note {
-  font-size: 0.85rem;
+  position: relative;
+  font-size: 0.8rem;
   font-weight: var(--w-reg);
   line-height: 1.5;
   color: var(--color-slate-dim);
@@ -247,31 +276,6 @@ html:has(body:not(.is-system)) {
   margin-inline: auto;
 }
 
-.prologue__enter {
-  margin-top: 2.4rem;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.6rem;
-  padding: 0.95rem 1.9rem;
-  background: var(--color-violet);
-  border: none;
-  border-radius: var(--panel-radius);
-  font-family: var(--font-display);
-  font-size: 0.9rem;
-  font-weight: var(--w-bold);
-  letter-spacing: 0.06em;
-  color: #0a0716;
-  cursor: pointer;
-  box-shadow: var(--glow-violet);
-  transition: transform 0.35s var(--ease-out), filter 0.35s var(--ease-out);
-}
-
-.prologue__enter:hover,
-.prologue__enter:focus-visible {
-  transform: translateY(-2px);
-  filter: brightness(1.12);
-}
-
 /* --- Scroll cue ----------------------------------------------------------- */
 .prologue__cue {
   position: absolute;
@@ -300,68 +304,40 @@ html:has(body:not(.is-system)) {
   50%      { opacity: 1;    transform: translateX(0.5rem); }
 }
 
-/* --- Skip ------------------------------------------------------------------
-   Present from the first frame. A recruiter with sixty seconds must be able to
-   reach the projects immediately; an intro that cannot be escaped is the
-   fastest way to lose exactly the visitor this site was built for. */
-.prologue__skip {
-  position: fixed;
-  z-index: 22;
-  top: calc(var(--safe-t) + 1.5rem);
-  right: calc(var(--safe-r) + var(--gutter));
-  display: inline-flex;
-  align-items: center;
-  gap: 0.55rem;
-  padding: 0.6rem 1rem;
-  background: rgba(8, 13, 24, 0.85);
-  border: 1px solid var(--color-panel-line);
-  border-radius: var(--panel-radius);
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
-  font-weight: var(--w-semi);
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--color-slate);
-  cursor: pointer;
-  transition: color 0.3s var(--ease-out), border-color 0.3s var(--ease-out);
-}
-
-.prologue__skip:hover,
-.prologue__skip:focus-visible {
-  color: var(--color-starlight);
-  border-color: var(--color-violet);
-}
-
-.prologue__skip-arrow {
-  transition: transform 0.3s var(--ease-out);
-}
-
-.prologue__skip:hover .prologue__skip-arrow {
-  transform: translateX(3px);
-}
-
 /* --- Chapter rail ----------------------------------------------------------
-   Doubles as a table of contents: the visitor can see how long the sequence is
-   before committing to it, and jump to any beat. Knowing the length is most of
-   what makes a scroll narrative feel voluntary rather than imposed. */
+   Redesigned. The previous version was a bare column of dots with a hairline,
+   which gave no sense of how long the sequence was and pushed its labels into
+   the reading column the moment the viewport narrowed.
+
+   This is a compact instrument instead: a numbered track where the active beat
+   expands to show its name and the others stay as short ticks. It sizes to its
+   own content, so it never has to be pushed off screen to avoid the prose. */
 .prologue__rail {
   position: fixed;
   z-index: 22;
   right: calc(var(--safe-r) + var(--gutter));
   top: 50%;
-  transform: translateY(-50%);
-  padding-left: 1rem;
-  border-left: 1px solid var(--color-panel-line);
+  translate: 0 -50%;
+  display: grid;
+  gap: 0.9rem;
+  padding: 0.9rem 0.75rem;
+  border-radius: 999px;
+  background: rgba(4, 7, 16, 0.4);
+  border: 1px solid rgba(139, 124, 255, 0.14);
 }
 
+/* The travelled portion of the sequence, drawn as a vertical fill behind the
+   ticks. Scaled by scroll progress from Prologue.jsx. */
 .prologue__rail-fill {
   position: absolute;
-  left: -1px;
-  top: 0;
-  width: 1px;
-  height: 100%;
-  background: var(--color-violet);
+  left: 50%;
+  top: 0.9rem;
+  bottom: 0.9rem;
+  width: 2px;
+  translate: -50% 0;
+  background: linear-gradient(180deg, var(--color-violet), rgba(139, 124, 255, 0.15));
   transform-origin: top center;
+  border-radius: 2px;
   will-change: transform;
 }
 
@@ -370,40 +346,50 @@ html:has(body:not(.is-system)) {
   margin: 0;
   padding: 0;
   display: grid;
-  gap: 1.1rem;
+  gap: 0.9rem;
 }
 
 .prologue__dot {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 0.7rem;
+  gap: 0.6rem;
   padding: 0;
   background: none;
   border: none;
-  cursor: pointer;
   font-family: var(--font-mono);
-  font-size: 0.62rem;
+  font-size: 0.58rem;
   font-weight: var(--w-semi);
-  letter-spacing: 0.18em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--color-slate-dim);
-  transition: color 0.3s var(--ease-out);
+  transition: color 0.35s var(--ease-out);
 }
 
+/* A tick, not a dot — it grows into a bar when active, which reads as position
+   along a track rather than as a switched-on light. */
 .prologue__dot-mark {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
+  width: 10px;
+  height: 2px;
+  border-radius: 2px;
   background: var(--color-slate-dim);
-  transition: background 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out);
+  transition:
+    width 0.4s var(--ease-out),
+    background 0.35s var(--ease-out),
+    box-shadow 0.35s var(--ease-out);
 }
 
-/* The label is hidden until it matters, so the rail rests as five quiet dots
-   rather than a second navigation column competing with the prose. */
+/* The label is revealed only for the beat you are on, or the one you are
+   pointing at. The rail therefore rests as a small stack of ticks and expands
+   on demand, instead of permanently occupying a column of the page. */
 .prologue__dot-label {
+  max-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
   opacity: 0;
-  transform: translateX(-0.4rem);
-  transition: opacity 0.3s var(--ease-out), transform 0.3s var(--ease-out);
+  transition:
+    max-width 0.45s var(--ease-out),
+    opacity 0.35s var(--ease-out);
 }
 
 .prologue__dot:hover,
@@ -415,22 +401,157 @@ html:has(body:not(.is-system)) {
 .prologue__dot:hover .prologue__dot-label,
 .prologue__dot:focus-visible .prologue__dot-label,
 .prologue__dot.is-active .prologue__dot-label {
+  max-width: 12rem;
   opacity: 1;
-  transform: translateX(0);
 }
 
-.prologue__dot.is-active .prologue__dot-mark {
+.prologue__dot.is-active .prologue__dot-mark,
+.prologue__dot:hover .prologue__dot-mark {
+  width: 20px;
   background: var(--color-violet);
   box-shadow: var(--glow-violet);
+}
+
+/* ===========================================================================
+   NEBULA BUTTONS
+   ---------------------------------------------------------------------------
+   Every control inside the story is a pocket of gas, not a rectangle. The pill
+   is only the container; what makes it read as nebula is the ::before layer
+   inside it — a blurred, off-centre, slowly drifting cloud, clipped by the
+   button's own rounded bounds.
+
+   Cheap on purpose. No SVG filter here: the big fractal turbulence is affordable
+   once, for the single arrival cue, but not on every button in the sequence.
+   A blurred gradient clipped to a rounded box gets most of the way there for a
+   composite, and the motion is transform-only so it stays off the main thread.
+   =========================================================================== */
+
+.neb-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.8rem 1.6rem;
+  border-radius: 999px;
+  border: 1px solid rgba(139, 124, 255, 0.3);
+  background: rgba(4, 7, 16, 0.42);
+  overflow: hidden;
+  isolation: isolate;
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: var(--w-bold);
+  letter-spacing: 0.01em;
+  color: var(--color-starlight);
+  text-decoration: none;
+  transition:
+    border-color 0.4s var(--ease-out),
+    transform 0.4s var(--ease-out),
+    box-shadow 0.4s var(--ease-out);
+}
+
+/* The gas. Two offset blooms drifting against each other so the cloud inside
+   the button is never symmetrical and never still. */
+.neb-btn__gas {
+  position: absolute;
+  inset: -60%;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(circle closest-side at 30% 40%, rgba(139, 124, 255, 0.85), transparent),
+    radial-gradient(circle closest-side at 72% 62%, rgba(217, 142, 74, 0.55), transparent);
+  filter: blur(16px);
+  opacity: 0.5;
+  animation: neb-btn-drift 14s ease-in-out infinite alternate;
+  transition: opacity 0.4s var(--ease-out);
+}
+
+@keyframes neb-btn-drift {
+  from { transform: translate3d(-6%, 3%, 0) scale(1); }
+  to   { transform: translate3d(6%, -3%, 0) scale(1.18); }
+}
+
+.neb-btn__label {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.neb-btn:hover,
+.neb-btn:focus-visible {
+  border-color: rgba(139, 124, 255, 0.7);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px -16px rgba(139, 124, 255, 0.9);
+}
+
+/* The gas ignites on hover — the cloud lights up rather than the box changing
+   colour. */
+.neb-btn:hover .neb-btn__gas,
+.neb-btn:focus-visible .neb-btn__gas {
+  opacity: 0.95;
+}
+
+/* Primary: denser gas, brighter rim. Used for the one action that ends the
+   sequence. */
+.neb-btn--primary {
+  padding: 0.95rem 2rem;
+  border-color: rgba(139, 124, 255, 0.55);
+  font-size: 0.9rem;
+}
+.neb-btn--primary .neb-btn__gas { opacity: 0.8; }
+
+/* Ghost: thinner, quieter. Used for Skip and for the outbound GitHub link,
+   neither of which should outrank the primary action. */
+.neb-btn--ghost {
+  padding: 0.6rem 1.15rem;
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  font-weight: var(--w-semi);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-slate);
+  border-color: rgba(139, 124, 255, 0.18);
+}
+.neb-btn--ghost .neb-btn__gas { opacity: 0.28; }
+.neb-btn--ghost:hover,
+.neb-btn--ghost:focus-visible { color: var(--color-starlight); }
+
+.prologue__actions {
+  margin-top: 2.4rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.8rem;
+}
+
+/* Skip keeps its fixed position; the nebula styling comes from .neb-btn. */
+.prologue__skip {
+  position: fixed;
+  z-index: 22;
+  top: calc(var(--safe-t) + 1.5rem);
+  right: calc(var(--safe-r) + var(--gutter));
+}
+
+.prologue__skip-arrow {
+  transition: transform 0.3s var(--ease-out);
+}
+
+.prologue__skip:hover .prologue__skip-arrow {
+  transform: translateX(3px);
 }
 
 /* ---------------------------------------------------------------------------
    Responsive
    --------------------------------------------------------------------------- */
 
-/* The rail's labels need room the moment the reading column widens toward it. */
+/* The rail now hides its own labels by default and reveals only the active
+   one, so the old blanket `display: none` at this width is gone — it would have
+   suppressed the reveal the redesign depends on. At mid widths the reveal is
+   simply capped narrower so it cannot reach the prose. */
 @media (max-width: 1100px) {
-  .prologue__dot-label { display: none; }
+  .prologue__dot:hover .prologue__dot-label,
+  .prologue__dot:focus-visible .prologue__dot-label,
+  .prologue__dot.is-active .prologue__dot-label { max-width: 7rem; }
 }
 
 @media (max-width: 900px) {
@@ -453,8 +574,11 @@ html:has(body:not(.is-system)) {
     top: auto;
     bottom: calc(var(--safe-b) + 1rem);
     right: 50%;
-    transform: translateX(50%);
+    translate: 50% 0;
   }
+
+  .prologue__actions { width: 100%; }
+  .prologue__actions .neb-btn { flex: 1 1 100%; }
 
   /* The first chapter's cue and the skip control would collide at the bottom
      of a phone screen. */
@@ -481,19 +605,34 @@ html:has(body:not(.is-system)) {
     transition: none;
   }
   .prologue__cue-line { animation: none; }
+  /* The gas inside every button stops drifting, but stays lit — the cloud is
+     the button's identity, not its animation. */
+  .neb-btn__gas { animation: none; }
+  .neb-btn:hover, .neb-btn:focus-visible { transform: none; }
 }
+
 
 /* ===========================================================================
    STAR GATE — the light that covers the cut.
    ---------------------------------------------------------------------------
-   Both transitions end on a frame of pure white, and that frame is where the
-   camera is actually teleported. See StarGate.jsx for why this is DOM and not
-   a quad inside the scene.
+   THE EDGE BUG THIS IS BUILT TO AVOID
+   The first version scaled a single element carrying
+   `radial-gradient(58% 58% at 50% 50%, ..., transparent 100%)`. In that syntax
+   58% is the ellipse RADIUS, and a radius of 58% of the width overshoots the
+   50% needed to reach the edge — so the gradient was still roughly a third
+   opaque AT the element's boundary, where it was then cut off perfectly
+   straight. While the element animated up from scale(0.55) that boundary sat
+   inside the viewport, drawing a hard-edged warm rectangle across the scene.
 
-   The gradient blooms from the centre outward rather than filling flat: at the
-   end of the dive the star IS the centre of the frame, so the light has to
-   grow out of it. A flat white rectangle reads as a page transition; this
-   reads as a star.
+   The rule that prevents it: any gradient that must disappear before its own
+   box ends has to use `closest-side`, which puts the 100% stop exactly at the
+   nearest edge. Everything past it is the final stop — transparent — so there
+   is nothing left to cut.
+
+   Two layers, because one cannot do both jobs:
+     ::before  a bloom that GROWS. Scaled, so it must be edge-safe.
+     ::after   a flat wash that whites out the corners a circular bloom can
+               never reach. Never scaled, so it has no edge to betray.
    =========================================================================== */
 
 .star-gate {
@@ -503,61 +642,90 @@ html:has(body:not(.is-system)) {
      labels — otherwise labels would float over a white screen. */
   z-index: 90;
   pointer-events: none;
-  background:
-    radial-gradient(
-      58% 58% at 50% 50%,
-      #fffdf7 0%,
-      #ffe9c4 34%,
-      #ffb765 62%,
-      rgba(255, 140, 60, 0) 100%
-    );
 }
 
-/* Ramping up — the star swallowing the frame, or the wormhole peaking.
-   `ease-in` so almost all the brightness arrives in the last third: the light
-   should bloom suddenly at the end of the fall, not wash in from the start and
-   hide the approach to the surface. */
-.star-gate--in {
-  animation: star-gate-in 1.4s cubic-bezier(0.7, 0, 0.9, 0.4) both;
+.star-gate::before,
+.star-gate::after {
+  content: '';
+  position: absolute;
+  inset: 0;
 }
 
-/* The return burst is shorter than the dive, and its timing is set in
-   StarDive.jsx — these two durations must stay in step. */
-.star-gate--returning {
+/* The bloom. `closest-side` guarantees it is fully transparent by the time it
+   reaches its own edge, at every scale. */
+.star-gate::before {
+  background: radial-gradient(
+    circle closest-side at 50% 50%,
+    #fffdf7 0%,
+    #ffeccb 30%,
+    #ffc178 58%,
+    rgba(255, 150, 70, 0) 100%
+  );
+  will-change: transform, opacity;
+}
+
+/* The wash. Flat, full-viewport, so its edges are the screen's edges. */
+.star-gate::after {
+  background: #fff6e8;
+  opacity: 0;
+}
+
+/* --- Ramping up: the star swallowing the frame, or the wormhole peaking ---- */
+.star-gate--in::before {
+  animation: gate-bloom-in 1.4s cubic-bezier(0.65, 0, 0.85, 0.35) both;
+}
+.star-gate--in::after {
+  animation: gate-wash-in 1.4s cubic-bezier(0.8, 0, 0.9, 0.5) both;
+}
+
+/* The return burst is shorter than the dive. These durations are the partner
+   of the tween lengths in StarDive.jsx — the two must stay in step. */
+.star-gate--returning::before,
+.star-gate--returning::after {
   animation-duration: 0.95s;
 }
 
-@keyframes star-gate-in {
-  from { opacity: 0; scale: 0.55; }
-  to   { opacity: 1; scale: 1.6; }
+@keyframes gate-bloom-in {
+  from { opacity: 0; transform: scale(0.35); }
+  to   { opacity: 1; transform: scale(3.4); }
 }
 
-/* Landing. Opaque, then off — revealing wherever the visitor now is.
-   Slower than the ramp so arrivals feel like emerging rather than snapping. */
-.star-gate--out {
-  animation: star-gate-out 1.1s var(--ease-out) both;
+@keyframes gate-wash-in {
+  /* Held back so the corners only fill at the very end — the light has to look
+     like it is spreading OUT of the star, not like a white sheet fading up. */
+  0%   { opacity: 0; }
+  55%  { opacity: 0; }
+  100% { opacity: 1; }
 }
 
-@keyframes star-gate-out {
-  from { opacity: 1; scale: 1.6; }
-  to   { opacity: 0; scale: 2.4; }
+/* --- Landing: opaque, then off, revealing wherever the visitor now is ------ */
+.star-gate--out::before {
+  animation: gate-bloom-out 1.2s var(--ease-out) both;
+}
+.star-gate--out::after {
+  animation: gate-wash-out 0.9s var(--ease-out) both;
+}
+
+@keyframes gate-bloom-out {
+  from { opacity: 1; transform: scale(3.4); }
+  to   { opacity: 0; transform: scale(5); }
+}
+
+@keyframes gate-wash-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  /* Keep the flash — it is what makes the cut legible — but drop the scaling
-     bloom and shorten it to a plain cross-fade. */
-  .star-gate--in  { animation: star-gate-fade-in 0.25s linear both; }
-  .star-gate--out { animation: star-gate-fade-out 0.3s linear both; }
-  .star-gate--returning { animation-duration: 0.2s; }
+  /* Keep the flash — it is what makes the cut legible — but drop the growth. */
+  .star-gate--in::before,
+  .star-gate--out::before { animation: none; opacity: 0; }
+  .star-gate--in::after  { animation: gate-wash-plain-in 0.25s linear both; }
+  .star-gate--out::after { animation: gate-wash-out 0.3s linear both; }
   .prologue__veil { animation: none; }
 }
 
-@keyframes star-gate-fade-in {
+@keyframes gate-wash-plain-in {
   from { opacity: 0; }
   to   { opacity: 1; }
-}
-
-@keyframes star-gate-fade-out {
-  from { opacity: 1; }
-  to   { opacity: 0; }
 }

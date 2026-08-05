@@ -176,9 +176,16 @@ export default function Prologue() {
       <div className="prologue__veil" aria-hidden="true" />
 
       {/* Always available, from the first frame. Not a hidden escape hatch. */}
-      <button type="button" className="prologue__skip" onClick={beginReturn}>
-        <span>Skip to the projects</span>
-        <span className="prologue__skip-arrow" aria-hidden="true">→</span>
+      <button
+        type="button"
+        className="neb-btn neb-btn--ghost prologue__skip"
+        onClick={beginReturn}
+      >
+        <span className="neb-btn__gas" aria-hidden="true" />
+        <span className="neb-btn__label">
+          Skip to the projects
+          <span className="prologue__skip-arrow" aria-hidden="true">→</span>
+        </span>
       </button>
 
       {/* Chapter rail. Doubles as a table of contents — a visitor can see how
@@ -257,14 +264,36 @@ export default function Prologue() {
                   precise scroll position — and so there is a real focusable
                   button for anyone navigating by keyboard. */}
               {c.isArrival && (
-                <button
-                  type="button"
-                  className="prologue__enter"
-                  onClick={beginReturn}
-                >
-                  Enter the system
-                  <span aria-hidden="true">→</span>
-                </button>
+                <div className="prologue__actions">
+                  <button
+                    type="button"
+                    className="neb-btn neb-btn--primary"
+                    onClick={beginReturn}
+                  >
+                    <span className="neb-btn__gas" aria-hidden="true" />
+                    <span className="neb-btn__label">
+                      Enter the system <span aria-hidden="true">→</span>
+                    </span>
+                  </button>
+
+                  {/* The portfolio is a curated slice; this is the way to the
+                      rest of it. Worth a real control rather than a line of
+                      body copy — it is the one outbound link in the story a
+                      technical reviewer will actually want. */}
+                  {c.link && (
+                    <a
+                      className="neb-btn neb-btn--ghost"
+                      href={c.link.url}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      <span className="neb-btn__gas" aria-hidden="true" />
+                      <span className="neb-btn__label">
+                        {c.link.label} <span aria-hidden="true">↗</span>
+                      </span>
+                    </a>
+                  )}
+                </div>
               )}
             </div>
 

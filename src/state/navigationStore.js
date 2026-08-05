@@ -8,6 +8,9 @@ import { create } from 'zustand'
 //        'prologue'  -> inside the star: the story, in its own dark space. The
 //                       page scrolls and the prologue owns the camera.
 //        'returning' -> the wormhole burst carrying the visitor back out. ~1s.
+//        'emerging'  -> rising out of the star: the camera starts at the
+//                       photosphere and pulls back to the system framing, so
+//                       the return is a reveal rather than a cut. ~1.9s.
 //
 // The two transitional stages exist so that entering and leaving the story are
 // authored moments rather than cuts. They are the only states in the app where
@@ -105,6 +108,11 @@ export const useNavigationStore = create((set, get) => ({
     if (get().stage !== 'prologue') return
     set({ stage: 'returning' })
   },
+
+  // Called by StarDive once the burst has peaked and the camera has been
+  // repositioned at the photosphere. From here the camera pulls back out to the
+  // system, which is the half of the journey the visitor actually watches.
+  beginEmerge: () => set({ stage: 'emerging' }),
 
   focusBody: (id) => {
     if (get().view === 'transitioning') return

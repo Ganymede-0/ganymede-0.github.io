@@ -60,11 +60,25 @@ export const WARP_START = 0.8
 //     the screen clipped to black while the edges, whose intersections are
 //     nearer, still rendered.
 //
-// At 96 the far wall sits at 296, comfortably inside the far plane, and the
+// At 112 the far wall sits at 312, comfortably inside the far plane, and the
 // camera is deep enough inside the shell to be surrounded by gas on every side.
-export const PROLOGUE_RADIUS = 96
+//
+// It is also the distance that makes the system read as FAR AWAY rather than
+// merely small: the outer orbit (radius 15) subtends about 7.6°, roughly a
+// third of the frame's half-height. Recognisable, unmistakably distant, and
+// never in competition with the words.
+export const PROLOGUE_RADIUS = 112
 
-// How far the camera drifts over the whole read. Small on purpose: this is a
+// How far the camera closes over the whole read. Small on purpose: this is a
 // slow current, not a journey. The scroll is carrying TEXT, and a camera making
 // large moves underneath it turns reading into a chore.
-export const PROLOGUE_DRIFT = 26
+export const PROLOGUE_DRIFT = 20
+
+// How fast the orbits turn while the story is being read.
+//
+// NOT zero. The system stopping dead the moment the visitor leaves it makes the
+// background a photograph, and a photograph behind a story about engineering
+// systems is a wasted opportunity. Slowed to under half speed instead: still
+// clearly alive at a glance, still calm enough that nothing in the periphery
+// competes with a paragraph for attention.
+export const PROLOGUE_ORBIT_SCALE = 0.42

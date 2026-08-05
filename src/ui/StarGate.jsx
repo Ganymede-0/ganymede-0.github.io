@@ -23,16 +23,21 @@ import { useNavigationStore } from '../state/navigationStore'
 
 export default function StarGate() {
   const stage = useNavigationStore((s) => s.stage)
-  const hasSeenApproach = useNavigationStore((s) => s.hasSeenApproach)
 
-  // Nothing on a cold load. The 'out' phase is a fade FROM white, so rendering
-  // it on first paint would open the site with an unexplained white flash —
-  // the overlay must not exist until a transition has actually happened.
-  if (stage === 'system' && !hasSeenApproach) return null
+  // The gate exists only while a transition is in progress.
+  //
+  // 'system' is a resting state and is never entered through a flash: the dive
+  // is covered on arrival at 'prologue', and the way back is covered during
+  // 'emerging', which has already faded the light off by the time it completes.
+  // Rendering here would fire the fade-from-white a second time on landing —
+  // and on a cold load it would open the site with an unexplained white flash.
+  if (stage === 'system') return null
 
   // 'in'  — ramping up: the star swallowing the frame, or the wormhole peaking.
-  // 'out' — the frame after a teleport: opaque, then fading off to reveal
-  //         wherever the visitor has landed.
+  // 'out' — after a teleport: opaque, then fading off. In 'prologue' that
+  //         reveals the story space; in 'emerging' it burns off over the top of
+  //         the camera pulling back out of the star, so the system opens out of
+  //         the light rather than appearing once the light has gone.
   const phase = stage === 'diving' || stage === 'returning' ? 'in' : 'out'
 
   return (

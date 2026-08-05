@@ -80,6 +80,7 @@ const fragmentShader = /* glsl */ `
 
 export default function Wormhole({ count = 900, reducedMotion = false }) {
   const groupRef = useRef()
+  const linesRef = useRef()
   const matRef = useRef()
 
   const geometry = useMemo(() => {
@@ -130,29 +131,48 @@ export default function Wormhole({ count = 900, reducedMotion = false }) {
     const g = groupRef.current
     if (!g) return
 
-    // Ride with the camera so the tunnel is always dead ahead. This mirrors the
-    // camera rather than parenting to it, because R3F's default camera is not
-    // guaranteed to be part of the scene graph. ApproachRig is mounted before
-    // this component, so it has already written the camera for this frame.
-    g.position.copy(state.camera.position)
-    g.quaternion.copy(state.camera.quaternion)
-
-    uniforms.uTime.value += delta
-    // Ease toward the scroll-derived target rather than snapping to it: a
-    // trackpad flick produces very coarse scroll deltas, and following them
-    // literally makes the streaks stutter.
-    const target = approach.active ? approach.warp : 0
+    // Ease toward the target rather than snapping to it: a trackpad flick
+    // produces very coarse scroll deltas, and following them literally makes
+    // the streaks stutter. `approach.warp` is written by scroll during the
+    // story and by the return burst on the way out, so it is read
+    // unconditionally here.
     uniforms.uWarp.value = THREE.MathUtils.damp(
       uniforms.uWarp.value,
-      reducedMotion ? Math.min(target, 0.25) : target,
+      reducedMotion ? Math.min(approach.warp, 0.25) : approach.warp,
       6,
       delta
     )
+
+    // Skip the object entirely when there is nothing to show.
+    //
+    // The fragment shader already discards every pixel at warp 0, but that is
+    // far too late: the vertex shader still runs for all 1,800 vertices and the
+    // draw call is still issued, every frame, for the entire life of the page.
+    // Toggling `visible` drops it before the renderer ever reaches it — and
+    // since the visitor is in the system (warp 0) almost the whole time, this
+    // is the common case, not the edge case.
+    const lines = linesRef.current
+    const live = uniforms.uWarp.value > 0.002
+    if (lines && lines.visible !== live) lines.visible = live
+    if (!live) return
+
+    // Ride with the camera so the tunnel is always dead ahead. This mirrors the
+    // camera rather than parenting to it, because R3F's default camera is not
+    // guaranteed to be part of the scene graph. ApproachRig and StarDive are
+    // mounted before this component, so whichever of them owns the camera has
+    // already written it for this frame.
+    g.position.copy(state.camera.position)
+    g.quaternion.copy(state.camera.quaternion)
+
+    // Only advance the clock while the effect is actually on screen, so a page
+    // left open does not accumulate a huge float in uTime — large values lose
+    // precision in the shader's mod() and make the streaks judder.
+    uniforms.uTime.value += delta
   })
 
   return (
     <group ref={groupRef}>
-      <lineSegments geometry={geometry} frustumCulled={false}>
+      <lineSegments ref={linesRef} geometry={geometry} frustumCulled={false} visible={false}>
         <shaderMaterial
           ref={matRef}
           vertexShader={vertexShader}

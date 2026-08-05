@@ -47,10 +47,11 @@ export const chapters = [
     id: 'proof',
     code: '02',
     kicker: 'Evidence',
-    title: 'Three systems, measured',
+    title: 'I hold my work to numbers',
     body:
-      'Each of these is a complete engineered system with a benchmarked result — not a ' +
-      'coursework exercise. You can open any of them at the end of this sequence.',
+      'I build end to end and benchmark what I build — every system here was taken past ' +
+      'the demo stage to a measured result. A few of those results are below. The wider ' +
+      'body of work, including everything still in flight, lives on GitHub.',
     stats: [
       { value: '0.95+', label: 'Dice score', note: 'Volumetric segmentation across 90+ GB of 3D scan data' },
       { value: 'Top 15%', label: 'C-MAPSS benchmark', note: 'Remaining Useful Life estimation vs. published methods' },
@@ -78,8 +79,10 @@ export const chapters = [
     kicker: 'Arrival',
     title: 'The system ahead',
     body:
-      'Each body in orbit is one of these projects. Select any one to read how it was ' +
-      'built, what it was measured against, and where the code lives.',
+      'Selected work orbits here — open any body to read how it was built, what it was ' +
+      'measured against, and where the code lives. It is a curated slice, not the whole ' +
+      'archive; the rest is on GitHub.',
+    link: { label: 'Browse everything on GitHub', url: 'https://github.com/ganymede-0' },
     isArrival: true,
   },
 ]
