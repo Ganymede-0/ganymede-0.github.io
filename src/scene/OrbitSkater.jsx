@@ -1,7 +1,6 @@
 import { Suspense, useRef, useEffect, useMemo, Component } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { useGLTF, useAnimations } from '@react-three/drei'
-import * as THREE from 'three'
 import { orbitClock } from './orbitClock'
 
 // -----------------------------------------------------------------------------

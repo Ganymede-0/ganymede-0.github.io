@@ -32,7 +32,14 @@ const CONTACTS = [
 // bottom-left (see CvNav). Nothing in this portfolio is reachable *only* by
 // clicking a moving 3D object — the CV nav is the keyboard accessibility floor.
 export default function Hud() {
+  const stage = useNavigationStore((s) => s.stage)
   const view = useNavigationStore((s) => s.view)
+  const returnToPrologue = useNavigationStore((s) => s.returnToPrologue)
+
+  // The approach sequence states the identity at full size and carries its own
+  // chrome. Running the HUD underneath it would duplicate the name and crowd
+  // the reading column on a phone.
+  if (stage !== 'system') return null
 
   return (
     <>
@@ -42,6 +49,16 @@ export default function Hud() {
           AI Engineer · Computer Vision · Industrial AI · MLOps
         </p>
         <p className="identity__location mono">Al Khobar · Eastern Province, KSA</p>
+        {/* The approach is a one-way trip by default; this is the way back to
+            it. Worth having — the intro carries the narrative framing, and a
+            visitor who skipped straight in has no other route to it. */}
+        <button
+          type="button"
+          className="identity__replay mono"
+          onClick={returnToPrologue}
+        >
+          <span aria-hidden="true">↑</span> Replay the approach
+        </button>
       </header>
 
       <CvNav />

@@ -5,10 +5,29 @@
    airport by someone who is deciding whether to schedule a call.
    --------------------------------------------------------------------------- */
 
+/* Fixed, not relative. During the approach the document scrolls beneath a
+   stationary scene — the canvas must not travel with the text, because the
+   illusion is that scrolling moves the CAMERA, not the page. */
 .app {
-  position: relative;
+  position: fixed;
+  inset: 0;
   width: 100%;
   height: 100%;
+  z-index: 0;
+}
+
+/* While the approach is running the document must be free to grow past the
+   viewport, or there is nothing to scroll. tokens.css pins #root to 100dvh for
+   the fixed system layout; this releases it for the duration. */
+body:not(.is-system) #root {
+  height: auto;
+  min-height: 100dvh;
+}
+
+/* Arrived. The system is a fixed-viewport experience, so any residual scroll
+   would only expose empty space below the canvas. */
+body.is-system {
+  overflow: hidden;
 }
 
 .app canvas {

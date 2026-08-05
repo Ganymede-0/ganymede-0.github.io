@@ -13,6 +13,7 @@ export default function CameraRig() {
   const tweenRef = useRef(null)
   const { camera, size } = useThree()
 
+  const stage = useNavigationStore((s) => s.stage)
   const view = useNavigationStore((s) => s.view)
   const activeId = useNavigationStore((s) => s.activeId)
   const arrivedAtBody = useNavigationStore((s) => s.arrivedAtBody)
@@ -34,6 +35,7 @@ export default function CameraRig() {
   })
 
   useEffect(() => {
+    if (stage !== 'system') return
     if (view !== 'transitioning') return
     const controls = controlsRef.current
     if (!controls) return
@@ -109,7 +111,19 @@ export default function CameraRig() {
     return () => {
       tl.kill()
     }
-  }, [view, activeId, camera, arrivedAtBody, arrivedAtOverview, reducedMotion])
+  }, [stage, view, activeId, camera, arrivedAtBody, arrivedAtOverview, reducedMotion])
+
+  // During the approach the prologue owns the camera outright, and OrbitControls
+  // must not merely be disabled — it must not exist. Its update() clamps the
+  // camera between minDistance and maxDistance on every call regardless of
+  // `enabled`, and the flight legitimately starts several times further out
+  // than maxDistance. Leaving it mounted would silently drag the camera back in
+  // and flatten the entire approach.
+  //
+  // Remounting on arrival is free and lands correctly: a fresh OrbitControls
+  // targets the origin, which is exactly OVERVIEW_TARGET and exactly where the
+  // approach was already looking.
+  if (stage !== 'system') return null
 
   return (
     <OrbitControls

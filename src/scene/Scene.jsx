@@ -23,6 +23,8 @@ import Planet from './Planet'
 import Station from './Station'
 import OrbitPath from './OrbitPath'
 import CameraRig from './CameraRig'
+import ApproachRig from './ApproachRig'
+import Wormhole from './Wormhole'
 import ResponsiveFraming from './ResponsiveFraming'
 import Lighting from './Lighting'
 import { projects, CATEGORY } from '../data/projects'
@@ -148,6 +150,17 @@ export default function Scene() {
       </Suspense>
 
       <ResponsiveFraming />
+      {/* ApproachRig must precede CameraRig and Wormhole: all three run at the
+          default frame priority, so they execute in mount order, and the other
+          two need the camera this one writes to be current for the frame.
+          Ordering is the whole mechanism here — R3F disables its automatic
+          render as soon as any useFrame declares a non-zero priority, so
+          sequencing by priority number is not an option. */}
+      <ApproachRig />
+      {/* The wormhole. Always mounted and driven entirely by scroll-derived
+          warp, so at rest it costs one draw call of fully-transparent geometry
+          and never changes the composer's shape. */}
+      <Wormhole count={isSmall ? 380 : 900} reducedMotion={reducedMotion} />
       <CameraRig />
 
       {/* The composer is ALWAYS mounted. It carries the tone mapping and bloom

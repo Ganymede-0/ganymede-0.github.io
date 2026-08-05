@@ -13,6 +13,7 @@ import { useNavigationStore } from '../state/navigationStore'
 // slightly imperfect frame.
 export default function ResponsiveFraming() {
   const { camera, size } = useThree()
+  const stage = useNavigationStore((s) => s.stage)
   const view = useNavigationStore((s) => s.view)
 
   useEffect(() => {
@@ -27,11 +28,16 @@ export default function ResponsiveFraming() {
       camera.updateProjectionMatrix()
     }
 
-    if (view === 'overview') {
+    // During the approach the flight recomputes the camera from scroll every
+    // frame, and does so in terms of the framing distance updated just above —
+    // so it is already responsive. Writing the final framing position here as
+    // well would fight it for one frame on every resize, which on a phone means
+    // every time the address bar collapses.
+    if (stage === 'system' && view === 'overview') {
       camera.position.copy(framing.position)
       camera.lookAt(0, 0, 0)
     }
-  }, [camera, size.width, size.height, view])
+  }, [camera, size.width, size.height, stage, view])
 
   return null
 }
