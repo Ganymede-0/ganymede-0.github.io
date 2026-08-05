@@ -10,6 +10,7 @@ import StarFallback from './ui/StarFallback'
 import './styles/tokens.css'
 import './styles/ui.css'
 import './styles/prologue.css'
+import './styles/nebula.css'
 
 // The canvas is a single persistent scene beneath everything. It is never
 // unmounted or remounted between the approach sequence and the system — the
@@ -34,11 +35,19 @@ export default function App() {
         </div>
         <ArrivalCue />
         <CvPanel />
-        <CursorHud />
       </div>
 
       {/* Scroll-driven approach. Renders null once the visitor has arrived. */}
       <Prologue />
+
+      {/* OUTSIDE .app, and last. Giving .app a z-index made it a stacking
+          context, which traps everything inside it — however high the reticle's
+          own z-index goes, it can never rise above a sibling of .app. The
+          prologue is such a sibling, so the cursor was being painted under the
+          entire approach sequence. As a top-level last child it composites
+          above everything, which is the only correct place for something that
+          replaces the native cursor. */}
+      <CursorHud />
     </>
   )
 }

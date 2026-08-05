@@ -13,9 +13,25 @@
 // system to its orbiting body so the panel can fly the camera to it.
 // -----------------------------------------------------------------------------
 
+// KEYWORD DIRECTION: these four terms are what the Saudi market actually
+// screens for, and each is backed by real work in this CV — a keyword you
+// cannot defend in an interview is worse than no keyword.
+//
+//   Machine Learning  — the broad term recruiters and ATS filters search first.
+//   Computer Vision   — the OpenCV/nnU-Net pipeline work.
+//   Generative AI     — the fine-tuned 7B advisory model in Bayan. This is the
+//                       single highest-value term in KSA right now: SDAIA,
+//                       Aramco, NEOM and stc are all hiring against it.
+//   MLOps             — on-premise deployment, Docker, Linux provisioning.
+//
+// "Industrial AI" was dropped deliberately. It described the work accurately
+// but reads as a niche, and it narrows her to one sector before a human has
+// even read the page. The industrial depth is still everywhere in the project
+// copy, where it lands as evidence rather than as a self-imposed limit.
 export const identity = {
   name: 'Sarah Khalid Altheeb',
-  headline: 'Artificial Intelligence Engineer · Computer Vision · Industrial AI · MLOps',
+  headline:
+    'Artificial Intelligence Engineer · Machine Learning · Computer Vision · Generative AI · MLOps',
   location: 'Al Khobar, Eastern Province, Saudi Arabia',
   languages: 'Arabic (native) · English (fluent)',
   contact: {
@@ -107,7 +123,7 @@ export const cvSections = [
         org: 'Imam Abdulrahman Bin Faisal University — Dammam',
         period: 'Jun 2026',
         points: [
-          'College of Computer Science & Information Technology, Computer Engineering Department · GPA 4.61 / 5.00.',
+          'College of Computer Science & Information Technology, Computer Engineering Department · Graduated with Honours.',
           'Coursework: Data Science & Analytics, Machine Learning, Deep Learning, Natural Language Processing, Generative AI, Computer Vision.',
         ],
       },

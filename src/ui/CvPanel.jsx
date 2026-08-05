@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import gsap from 'gsap'
 import { identity, cvSections } from '../data/cv'
 import { useNavigationStore } from '../state/navigationStore'
@@ -97,7 +97,19 @@ export default function CvPanel() {
   const reducedMotion = useReducedMotion()
 
   const panelRef = useRef()
+  const scrollRef = useRef()
+  const tabsRef = useRef()
   const sectionRefs = useRef({})
+
+  // Which section is currently under the reader's eye.
+  //
+  // Deliberately SEPARATE from `cvSection`. `cvSection` is navigation intent —
+  // "take me here" — and drives scrollIntoView. If scrolling wrote back into
+  // that same value, every scroll would retrigger the scroll-to effect and the
+  // panel would fight the reader for control of its own scroll position.
+  // Splitting intent from observation breaks the loop: this value is display
+  // only, and nothing acts on it.
+  const [visibleId, setVisibleId] = useState(null)
 
   // Slide-in on open.
   useEffect(() => {
@@ -123,6 +135,44 @@ export default function CvPanel() {
       node.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'start' })
     }
   }, [cvOpen, cvSection, reducedMotion])
+
+  // Scrollspy: keep the tab bar showing where the reader actually is.
+  //
+  // The band is the top slice of the panel (everything from 88% down is
+  // discounted), so a section becomes "current" as its heading reaches reading
+  // position rather than when its last line finally leaves the viewport —
+  // which is what makes the highlight feel like it is tracking the eye instead
+  // of lagging a full section behind.
+  useEffect(() => {
+    if (!cvOpen) return
+    const root = scrollRef.current
+    const nodes = Object.values(sectionRefs.current).filter(Boolean)
+    if (!root || !nodes.length) return
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) setVisibleId(e.target.dataset.cvId)
+        })
+      },
+      { root, rootMargin: '0px 0px -88% 0px', threshold: 0 }
+    )
+
+    nodes.forEach((n) => io.observe(n))
+    return () => io.disconnect()
+  }, [cvOpen])
+
+  // With six sections the tab bar can overflow its width, so an active tab is
+  // not necessarily an visible one. Keep it in view as the reader scrolls.
+  useEffect(() => {
+    if (!visibleId || !tabsRef.current) return
+    const tab = tabsRef.current.querySelector(`[data-tab-id="${visibleId}"]`)
+    tab?.scrollIntoView({
+      behavior: reducedMotion ? 'auto' : 'smooth',
+      block: 'nearest',
+      inline: 'nearest',
+    })
+  }, [visibleId, reducedMotion])
 
   // Esc closes.
   useEffect(() => {
@@ -150,24 +200,32 @@ export default function CvPanel() {
           </button>
         </header>
 
-        <nav className="cv-tabs" aria-label="Résumé sections">
-          {cvSections.map((s) => (
-            <button
-              key={s.id}
-              type="button"
-              className={`cv-tab ${cvSection === s.id ? 'is-active' : ''}`}
-              onClick={() => setCvSection(s.id)}
-            >
-              {s.label}
-            </button>
-          ))}
+        <nav className="cv-tabs" aria-label="Résumé sections" ref={tabsRef}>
+          {cvSections.map((s) => {
+            // Fall back to the requested section until the observer has had a
+            // frame to report, so the bar is never momentarily blank on open.
+            const isActive = (visibleId ?? cvSection) === s.id
+            return (
+              <button
+                key={s.id}
+                type="button"
+                data-tab-id={s.id}
+                className={`cv-tab ${isActive ? 'is-active' : ''}`}
+                aria-current={isActive ? 'true' : undefined}
+                onClick={() => setCvSection(s.id)}
+              >
+                {s.label}
+              </button>
+            )
+          })}
         </nav>
 
-        <div className="cv-scroll">
+        <div className="cv-scroll" ref={scrollRef}>
           {cvSections.map((s) => (
             <section
               key={s.id}
               className="cv-section"
+              data-cv-id={s.id}
               ref={(el) => (sectionRefs.current[s.id] = el)}
             >
               <div className="cv-section__head">

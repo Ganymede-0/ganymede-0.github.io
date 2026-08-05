@@ -16,6 +16,7 @@ import { Vector2, NoToneMapping } from 'three'
 import Starfield from './Starfield'
 import Nebula from './Nebula'
 import Sun from './Sun'
+import SunBeacon from './SunBeacon'
 import DustField from './DustField'
 import OrbitSkater from './OrbitSkater'
 import ParallaxRig from './ParallaxRig'
@@ -48,6 +49,8 @@ export default function Scene() {
   const [sunMesh, setSunMesh] = useState(null)
   const activeId = useNavigationStore((s) => s.activeId)
   const returnToOverview = useNavigationStore((s) => s.returnToOverview)
+  const dismissOnboarding = useNavigationStore((s) => s.dismissOnboarding)
+  const startApproach = useNavigationStore((s) => s.startApproach)
   const view = useNavigationStore((s) => s.view)
   const reducedMotion = useReducedMotion()
 
@@ -72,6 +75,11 @@ export default function Scene() {
         toneMapping: NoToneMapping,
       }}
       onPointerMissed={() => {
+        // Touching the scene at all proves the visitor has found it, so the
+        // arrival cue has done its job and should get out of the way. Without
+        // this, someone who ignores the cue and goes straight to dragging keeps
+        // it on screen — and the body labels stay suppressed behind it.
+        dismissOnboarding()
         // Clicking empty space is a natural "back" — recruiters won't hunt
         // for a button, and the explicit button is still there for anyone
         // who does.
@@ -116,7 +124,8 @@ export default function Scene() {
           />
         </ParallaxRig>
 
-        <Sun onReady={setSunMesh} />
+        <Sun onReady={setSunMesh} onStartApproach={startApproach} />
+        <SunBeacon />
 
         {projects.map((project) => (
           <OrbitPath

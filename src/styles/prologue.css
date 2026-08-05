@@ -380,151 +380,6 @@
   box-shadow: var(--glow-violet);
 }
 
-/* ===========================================================================
-   ARRIVAL CUE
-   ---------------------------------------------------------------------------
-   Says what to do, once, at the centre-bottom of the viewport where it will
-   actually be seen — and names the three projects as real buttons, so the
-   instruction is simultaneously a working route in.
-   =========================================================================== */
-
-.arrival-cue {
-  position: fixed;
-  z-index: 32;
-  left: 50%;
-  bottom: calc(var(--safe-b) + 2.5rem);
-  width: min(30rem, calc(100vw - 2 * var(--gutter)));
-  padding: 1.4rem 1.6rem 1.2rem;
-  background: var(--color-surface);
-  border: 1px solid var(--color-panel-line);
-  border-radius: var(--panel-radius);
-  text-align: center;
-  box-shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.9);
-
-  /* Resting position. The centring transform must live here, not only in the
-     entrance keyframes — the reduced-motion variant replaces that animation
-     with one that does not set transform, and without this the panel would
-     hang half a width to the right of centre. */
-  transform: translate(-50%, 0);
-
-  /* The 0.9s delay lets the wormhole settle before this appears, rather than
-     the two competing. `both` holds the opening frame through the delay, so
-     the cue is invisible AND click-through until it actually arrives —
-     pointer-events is animated here precisely so an invisible box never sits
-     over the scene catching clicks. */
-  animation: arrival-cue-in 0.7s var(--ease-out) 0.9s both;
-}
-
-@keyframes arrival-cue-in {
-  from {
-    opacity: 0;
-    transform: translate(-50%, 1.5rem);
-    pointer-events: none;
-  }
-  to {
-    opacity: 1;
-    transform: translate(-50%, 0);
-    pointer-events: auto;
-  }
-}
-
-.arrival-cue__lead {
-  margin: 0 0 1rem;
-  font-size: 0.95rem;
-  font-weight: var(--w-med);
-  color: var(--color-starlight);
-}
-
-.arrival-cue__bodies {
-  list-style: none;
-  margin: 0 0 1rem;
-  padding: 0;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.5rem;
-}
-
-.arrival-cue__body {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 0.9rem;
-  background: transparent;
-  border: 1px solid var(--color-panel-line);
-  border-radius: var(--panel-radius);
-  font-family: var(--font-display);
-  font-size: 0.85rem;
-  font-weight: var(--w-bold);
-  color: var(--color-starlight);
-  cursor: pointer;
-  transition: border-color 0.3s var(--ease-out), background 0.3s var(--ease-out);
-}
-
-.arrival-cue__body:hover,
-.arrival-cue__body:focus-visible {
-  border-color: var(--body-accent);
-  background: rgba(255, 255, 255, 0.04);
-}
-
-.arrival-cue__dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--body-accent);
-}
-
-.arrival-cue__hint {
-  margin: 0 0 0.9rem;
-  font-size: 0.62rem;
-  font-weight: var(--w-semi);
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--color-slate-dim);
-}
-
-.arrival-cue__dismiss {
-  padding: 0.4rem 1rem;
-  background: none;
-  border: none;
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
-  font-weight: var(--w-semi);
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--color-violet);
-  cursor: pointer;
-}
-
-.arrival-cue__dismiss:hover,
-.arrival-cue__dismiss:focus-visible {
-  color: var(--color-starlight);
-}
-
-/* Replay control in the identity block — the only route back to the approach
-   for a visitor who skipped it. */
-.identity__replay {
-  margin-top: 0.9rem;
-  padding: 0;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  background: none;
-  border: none;
-  font-size: 0.62rem;
-  font-weight: var(--w-semi);
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--color-slate-dim);
-  cursor: pointer;
-  transition: color 0.3s var(--ease-out);
-}
-
-.identity__replay:hover,
-.identity__replay:focus-visible {
-  color: var(--color-violet);
-}
-
 /* ---------------------------------------------------------------------------
    Responsive
    --------------------------------------------------------------------------- */
@@ -560,8 +415,6 @@
   /* The first chapter's cue and the skip control would collide at the bottom
      of a phone screen. */
   .prologue__cue { display: none; }
-
-  .arrival-cue { bottom: calc(var(--safe-b) + 5rem); }
 }
 
 /* Short landscape viewports: full-height chapters become unreadable, so let
@@ -584,11 +437,4 @@
     transition: none;
   }
   .prologue__cue-line { animation: none; }
-  /* Keep the delay — it is sequencing, not decoration — but drop the travel. */
-  .arrival-cue { animation: arrival-cue-fade 0.2s linear 0.9s both; }
-}
-
-@keyframes arrival-cue-fade {
-  from { opacity: 0; pointer-events: none; }
-  to   { opacity: 1; pointer-events: auto; }
 }

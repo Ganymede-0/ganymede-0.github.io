@@ -40,7 +40,7 @@ export const chapters = [
       'whole path: ingesting and validating operational data, developing models for anomaly ' +
       'detection and equipment condition monitoring, and deploying them on-premise inside ' +
       'live industrial environments.',
-    tags: ['Computer Vision', 'Industrial AI', 'MLOps', 'Predictive Maintenance'],
+    tags: ['Machine Learning', 'Computer Vision', 'Generative AI', 'MLOps'],
   },
 
   {
@@ -69,7 +69,7 @@ export const chapters = [
       'supported on-premise rollout of the Leap AI Engine — provisioning Linux environments ' +
       'and configuring containers so inference runs inside client infrastructure rather ' +
       'than a vendor cloud.',
-    meta: 'B.Sc. Artificial Intelligence · GPA 4.61 / 5.00 · Imam Abdulrahman Bin Faisal University',
+    meta: 'B.Sc. Artificial Intelligence, with Honours · Imam Abdulrahman Bin Faisal University',
   },
 
   {

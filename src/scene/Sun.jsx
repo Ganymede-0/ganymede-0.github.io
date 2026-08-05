@@ -163,7 +163,7 @@ const coronaFrag = /* glsl */ `
   }
 `
 
-export default function Sun({ onReady }) {
+export default function Sun({ onReady, onStartApproach }) {
   const coreRef = useRef()
 
   // EXPOSURE: this is the master brightness of the star and the value the whole
@@ -221,8 +221,29 @@ export default function Sun({ onReady }) {
       {/* The system's warm light source. */}
       <pointLight position={[0, 0, 0]} intensity={95} distance={140} decay={2} color="#ffd6a0" />
 
-      {/* Photosphere — opaque, depth-writing, the GodRays source. */}
-      <mesh ref={coreRef} geometry={coreGeo} renderOrder={0}>
+      {/* Photosphere — opaque, depth-writing, the GodRays source.
+          It is also the doorway into the approach sequence: the star is the
+          one body that represents Sarah rather than a project, so clicking it
+          is what opens her story. The <Html> beacon above carries the label
+          and the keyboard-focusable button; this makes the star itself a
+          target too, because a visitor told "start here" will aim at the
+          glowing sphere, not at the caption floating over it. */}
+      <mesh
+        ref={coreRef}
+        geometry={coreGeo}
+        renderOrder={0}
+        onClick={(e) => {
+          // Without this the click also reaches the canvas as a "missed"
+          // pointer event, which dismisses the arrival cue on the way past.
+          e.stopPropagation()
+          onStartApproach?.()
+        }}
+        onPointerOver={(e) => {
+          e.stopPropagation()
+          document.body.classList.add('is-pointing')
+        }}
+        onPointerOut={() => document.body.classList.remove('is-pointing')}
+      >
         <shaderMaterial
           vertexShader={coreVert}
           fragmentShader={coreFrag}

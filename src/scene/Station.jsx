@@ -4,7 +4,7 @@ import { Html } from '@react-three/drei'
 import * as THREE from 'three'
 import { orbitClock, bodyRegistry } from './orbitClock'
 import { labelDistanceFactor } from './framing'
-import { useNavigationStore } from '../state/navigationStore'
+import { useNavigationStore, useLabelsVisible } from '../state/navigationStore'
 
 const _scale = new THREE.Vector3()
 
@@ -22,7 +22,7 @@ export default function Station({ project }) {
   const hoveredId = useNavigationStore((s) => s.hoveredId)
   const activeId = useNavigationStore((s) => s.activeId)
   const view = useNavigationStore((s) => s.view)
-  const cvOpen = useNavigationStore((s) => s.cvOpen)
+  const labelsVisible = useLabelsVisible()
 
   const canvasSize = useThree((s) => s.size)
   const labelFactor = useMemo(
@@ -129,7 +129,7 @@ export default function Station({ project }) {
           ))}
         </group>
 
-        {view === 'overview' && !cvOpen && (
+        {labelsVisible && (
           <Html
             position={[0, 1.0, 0]}
             center

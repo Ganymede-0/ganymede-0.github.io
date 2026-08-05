@@ -7,7 +7,7 @@ import HoloScan from './HoloScan'
 import { orbitClock, bodyRegistry } from './orbitClock'
 import { createPlanetMaterial } from './planetMaterials'
 import { labelDistanceFactor } from './framing'
-import { useNavigationStore } from '../state/navigationStore'
+import { useNavigationStore, useLabelsVisible } from '../state/navigationStore'
 
 // Module-scoped scratch vector — reused every frame so the hover-swell lerp
 // doesn't allocate a fresh Vector3 (and feed the GC) 60x/second per planet.
@@ -29,7 +29,7 @@ export default function Planet({ project }) {
   const hoveredId = useNavigationStore((s) => s.hoveredId)
   const activeId = useNavigationStore((s) => s.activeId)
   const view = useNavigationStore((s) => s.view)
-  const cvOpen = useNavigationStore((s) => s.cvOpen)
+  const labelsVisible = useLabelsVisible()
 
   // Subscribing to canvas size re-renders this on resize/rotate, which is what
   // keeps the label scale in step with the responsive camera distance.
@@ -114,12 +114,10 @@ export default function Planet({ project }) {
           </group>
         )}
 
-        {/* Label. Hidden during flight, and while EITHER panel is open — drei's
-            <Html> portals into its own DOM layer that sits above the canvas, so
-            a floating label will punch straight through an overlay panel no
-            matter what z-index the panel carries. Not rendering it is the only
-            reliable fix. */}
-        {view === 'overview' && !cvOpen && (
+        {/* Label. See useLabelsVisible for every condition that hides it and
+            why — the rule lives in the store so Planet and Station cannot
+            drift apart. */}
+        {labelsVisible && (
           <Html
             position={[0, project.size + 0.75, 0]}
             center

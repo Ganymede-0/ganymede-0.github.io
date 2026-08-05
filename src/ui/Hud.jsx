@@ -34,7 +34,6 @@ const CONTACTS = [
 export default function Hud() {
   const stage = useNavigationStore((s) => s.stage)
   const view = useNavigationStore((s) => s.view)
-  const returnToPrologue = useNavigationStore((s) => s.returnToPrologue)
 
   // The approach sequence states the identity at full size and carries its own
   // chrome. Running the HUD underneath it would duplicate the name and crowd
@@ -46,19 +45,13 @@ export default function Hud() {
       <header className="hud hud--identity">
         <h1 className="identity__name">Sarah Altheeb</h1>
         <p className="identity__role mono">
-          AI Engineer · Computer Vision · Industrial AI · MLOps
+          AI Engineer · Machine Learning · Computer Vision · Generative AI · MLOps
         </p>
         <p className="identity__location mono">Al Khobar · Eastern Province, KSA</p>
-        {/* The approach is a one-way trip by default; this is the way back to
-            it. Worth having — the intro carries the narrative framing, and a
-            visitor who skipped straight in has no other route to it. */}
-        <button
-          type="button"
-          className="identity__replay mono"
-          onClick={returnToPrologue}
-        >
-          <span aria-hidden="true">↑</span> Replay the approach
-        </button>
+        {/* No replay control here any more. The star carries it — see
+            SunBeacon. One door into the story, in the one place that is
+            thematically the story's source, beats the same action offered
+            twice in two different visual languages. */}
       </header>
 
       <CvNav />

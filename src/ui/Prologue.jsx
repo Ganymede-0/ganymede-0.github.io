@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { chapters } from '../data/prologue'
 import { approach, smoothstep, WARP_START } from '../scene/approach'
 import { useNavigationStore } from '../state/navigationStore'
@@ -54,7 +54,25 @@ export default function Prologue() {
     const read = () => {
       tickingRef.current = false
       const max = document.documentElement.scrollHeight - window.innerHeight
-      const p = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 1
+
+      // A non-scrollable page means the layout has not settled yet — it does
+      // NOT mean the visitor has reached the end.
+      //
+      // This distinction is why "Replay the approach" appeared to do nothing.
+      // Returning to the prologue re-rendered the chapters, but on that first
+      // pass the body still carried `is-system` (overflow: hidden, #root pinned
+      // to 100dvh), so the document measured exactly one viewport tall and
+      // `max` came out 0. Treating that as progress = 1 tripped the arrival
+      // threshold on the very first read and threw the visitor straight back
+      // into the system, within a frame. Treat it as 0 and commit to nothing.
+      if (max <= 0) {
+        approach.progress = 0
+        approach.warp = 0
+        setProgress(0)
+        return
+      }
+
+      const p = Math.min(1, Math.max(0, window.scrollY / max))
 
       approach.progress = p
       approach.warp = smoothstep(WARP_START, 1, p)
@@ -110,16 +128,19 @@ export default function Prologue() {
 
   // Once arrived, the page must not scroll — the system is a fixed viewport
   // experience and a stray scroll would reveal blank space beneath it.
-  useEffect(() => {
+  //
+  // useLayoutEffect, not useEffect, and deliberately so: every layout effect
+  // runs before any passive effect, which guarantees the document is scrollable
+  // again BEFORE the scroll listener above takes its first measurement. With a
+  // passive effect the order reverses and the first read measures a page that
+  // is still locked. Restoring scroll position belongs in the same pass, so the
+  // reset is applied before the browser paints rather than as a visible jump.
+  useLayoutEffect(() => {
     document.body.classList.toggle('is-system', !isPrologue)
-    return () => document.body.classList.remove('is-system')
-  }, [isPrologue])
-
-  // Restarting the sequence has to reset scroll, or the visitor would land at
-  // the very bottom — which is the arrival threshold, and would immediately
-  // throw them back into the system.
-  useEffect(() => {
+    // Restarting has to reset scroll, or the visitor lands at the very bottom —
+    // which is the arrival threshold, and is immediately thrown back in.
     if (isPrologue) window.scrollTo(0, 0)
+    return () => document.body.classList.remove('is-system')
   }, [isPrologue])
 
   if (!isPrologue) return null

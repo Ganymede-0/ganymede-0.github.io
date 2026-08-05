@@ -90,10 +90,31 @@ body {
   color: var(--color-starlight);
   font-family: var(--font-body);
   font-weight: var(--w-reg);
-  overflow: hidden;
+  /* NOT `overflow: hidden` here. The approach sequence scrolls the document,
+     and a blanket hidden on body clips it to a single viewport — the page
+     simply stops scrolling. The lock belongs only to the arrived state, where
+     it is applied as `body.is-system` in ui.css. */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+}
+
+/* `cursor` is inherited, but any element that sets its own value wins — and
+   every button and link in this project sets `cursor: pointer`. The result was
+   a reticle that vanished and handed back the OS arrow the moment the pointer
+   crossed anything interactive, which reads as the custom cursor being broken
+   at random. Interactive elements are exactly where the reticle's engage state
+   is supposed to be visible, so they must not opt out of it. */
+a,
+button,
+input,
+select,
+textarea,
+label,
+summary,
+[role='button'],
+[tabindex] {
+  cursor: none;
 }
 
 button {
