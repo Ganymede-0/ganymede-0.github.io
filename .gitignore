@@ -12,6 +12,20 @@ dist
 dist-ssr
 *.local
 
+# Local tooling config. Holds machine-specific absolute paths and personal
+# tool permissions — nothing another contributor could use, and not something
+# that belongs in a public repository.
+.claude/
+
+# Secrets. Nothing in this project needs a key today (it is a fully static
+# site), but these are listed so that a future integration cannot leak one by
+# accident.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
