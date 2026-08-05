@@ -44,6 +44,7 @@ export default function Prologue() {
   const [active, setActive] = useState(0)
   const [progress, setProgress] = useState(0)
   const sectionRefs = useRef([])
+  const runwayRef = useRef(null)
   const tickingRef = useRef(false)
 
   const isPrologue = stage === 'prologue'
@@ -85,13 +86,6 @@ export default function Prologue() {
       approach.progress = p
       approach.warp = smoothstep(WARP_START, 1, p)
       setProgress(p)
-
-      // Reaching the end starts the RETURN BURST rather than cutting straight
-      // back. With scroll-snap the final snap can complete in a couple of
-      // hundred milliseconds, which is not enough wormhole to be worth having —
-      // so the burst is an authored fixed-length sequence, and plays identically
-      // whether the visitor crept to the bottom or flung the scrollbar there.
-      if (p >= 0.995) beginReturn()
     }
 
     // rAF-throttled: scroll can fire faster than the display refreshes, and the
@@ -109,6 +103,35 @@ export default function Prologue() {
       window.removeEventListener('scroll', onScroll)
       window.removeEventListener('resize', onScroll)
     }
+  }, [isPrologue])
+
+  // Reaching the runway — the blank slide past the last chapter — starts the
+  // return burst.
+  //
+  // Triggered by observing the element rather than by testing scroll position
+  // against a threshold. The arithmetic version was brittle in exactly the way
+  // arithmetic about scroll always is: it depended on the document's total
+  // height, the viewport height and the final snap position agreeing to within
+  // half a percent, and a mobile toolbar collapsing was enough to make the last
+  // few pixels unreachable so the sequence could never finish. The element
+  // either came into view or it did not.
+  useEffect(() => {
+    if (!isPrologue) return
+    const node = runwayRef.current
+    if (!node) return
+
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) beginReturn()
+      },
+      // Most of the runway on screen: far enough that the visitor has clearly
+      // committed to leaving, early enough that the burst begins as they
+      // arrive rather than after a beat of empty space.
+      { threshold: 0.6 }
+    )
+
+    io.observe(node)
+    return () => io.disconnect()
   }, [isPrologue, beginReturn])
 
   // Reveal each chapter as it arrives, and track which one holds the middle of
@@ -150,7 +173,7 @@ export default function Prologue() {
     document.body.classList.toggle('is-system', !isPrologue)
     // Restarting has to reset scroll, or the visitor lands at the very bottom —
     // which is the arrival threshold, and is immediately thrown back in.
-    if (isPrologue) window.scrollTo(0, 0)
+    if (isPrologue) window.scrollTo({ top: 0, behavior: 'instant' })
     return () => document.body.classList.remove('is-system')
   }, [isPrologue])
 
@@ -313,7 +336,7 @@ export default function Prologue() {
             explains what they are about to be handed. This gives the last
             chapter room to be read, and turns the final stretch of scroll into
             pure wormhole with no text competing for attention. */}
-        <div className="prologue__runway" aria-hidden="true" />
+        <div className="prologue__runway" ref={runwayRef} aria-hidden="true" />
       </main>
     </>
   )
