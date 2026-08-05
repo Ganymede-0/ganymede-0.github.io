@@ -386,7 +386,10 @@ html {
   margin: 0;
   padding: 0;
   display: grid;
-  gap: 0.9rem;
+  /* Was 0.9rem when each button was 12px tall. The buttons are now 24px for
+     hit-target reasons, so the gap gives back the 12px they gained and the
+     pitch between ticks is unchanged. */
+  gap: 0.15rem;
 }
 
 .prologue__dot {
@@ -395,6 +398,14 @@ html {
   align-items: center;
   gap: 0.6rem;
   padding: 0;
+  /* Hit area, not appearance. Measured at 20x12px, which fails WCAG 2.2 AA
+     (2.5.8 Target Size, minimum 24x24 CSS px) — and 12px is a fussy thing to
+     hit with a mouse regardless of standards.
+     The tick itself stays 10x2px; this only grows the button's box around it,
+     and the list gap below is reduced by the same amount so the visual rhythm
+     of the rail is unchanged. */
+  min-width: 24px;
+  min-height: 24px;
   background: none;
   border: none;
   font-family: var(--font-mono);
