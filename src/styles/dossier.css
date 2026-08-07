@@ -1,0 +1,635 @@
+/* ===========================================================================
+   PRODUCT EVIDENCE — the panel teaser and the full-screen walkthrough.
+   ---------------------------------------------------------------------------
+   One problem shapes everything in this file: the screenshots are a WHITE
+   clinical UI, and this site is near-black vacuum. Dropped straight onto the
+   background they glare, and any transparency behind them turns the 3D scene
+   into visual noise leaking through a medical scan.
+
+   So the rules here are:
+     - every screenshot sits in an explicit frame with a hairline and a shadow,
+       so it reads as a captured artefact rather than as part of the page;
+     - the scrim behind the walkthrough is effectively opaque;
+     - accent colour is the body's own, carried in on --accent, so the
+       walkthrough belongs to the planet you opened it from.
+   =========================================================================== */
+
+/* ---------------------------------------------------------------------------
+   1. The teaser, inside the mission panel.
+   Deliberately the first thing in the panel body — see MissionPanel.jsx.
+   --------------------------------------------------------------------------- */
+
+.mission-media {
+  margin: 0 0 1.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.mission-media__hero {
+  position: relative;
+  display: block;
+  width: 100%;
+  /* Fixed ratio so the panel's layout does not jump when the poster decodes. */
+  aspect-ratio: 16 / 10;
+  padding: 0;
+  border: 1px solid var(--color-panel-line);
+  border-radius: var(--panel-radius);
+  background: var(--color-void);
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color 0.22s var(--ease-out), box-shadow 0.22s var(--ease-out);
+}
+
+.mission-media__hero img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  /* The poster is a bright white UI. Held back at rest so the play control and
+     the label stay the brightest things in the frame, then brought up on hover
+     — the image itself becomes the hover feedback. Measured on the rendered
+     panel: below about 0.7 the platform's own headline stops being readable,
+     which defeats the point of showing a poster at all. */
+  opacity: 0.72;
+  transition: opacity 0.28s var(--ease-out), transform 0.5s var(--ease-out);
+}
+
+.mission-media__scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(1, 2, 6, 0.15) 0%,
+    rgba(1, 2, 6, 0.55) 55%,
+    rgba(1, 2, 6, 0.88) 100%
+  );
+}
+
+.mission-media__hero:hover,
+.mission-media__hero:focus-visible {
+  border-color: var(--accent);
+  box-shadow: 0 0 30px -10px var(--accent);
+}
+
+.mission-media__hero:hover img,
+.mission-media__hero:focus-visible img {
+  opacity: 0.85;
+  transform: scale(1.03);
+}
+
+.mission-media__play {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 1px solid var(--accent);
+  background: rgba(1, 2, 6, 0.72);
+  color: var(--accent);
+  /* Optical centring: a right-pointing triangle's visual mass sits left of its
+     bounding box, so the glyph needs nudging right to look centred. */
+  padding-left: 3px;
+  transition: background 0.22s var(--ease-out), color 0.22s var(--ease-out),
+    box-shadow 0.22s var(--ease-out);
+}
+
+.mission-media__hero:hover .mission-media__play,
+.mission-media__hero:focus-visible .mission-media__play {
+  background: var(--accent);
+  color: var(--color-void);
+  box-shadow: 0 0 26px -4px var(--accent);
+}
+
+.mission-media__label {
+  position: absolute;
+  left: 0.85rem;
+  bottom: 0.7rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--color-starlight);
+}
+
+/* Four frames from across the reel — range, not sequence. */
+.mission-media__teaser {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.4rem;
+}
+
+.mission-media__chip {
+  padding: 0;
+  aspect-ratio: 16 / 10;
+  border: 1px solid var(--color-panel-line);
+  border-radius: var(--panel-radius);
+  background: var(--color-void);
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color 0.18s ease, transform 0.18s var(--ease-out);
+}
+
+.mission-media__chip img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  opacity: 0.55;
+  transition: opacity 0.18s ease;
+}
+
+.mission-media__chip:hover,
+.mission-media__chip:focus-visible {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+
+.mission-media__chip:hover img,
+.mission-media__chip:focus-visible img {
+  opacity: 1;
+}
+
+.mission-media__open {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  width: 100%;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid var(--accent);
+  border-radius: var(--panel-radius);
+  background: none;
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.mission-media__open:hover,
+.mission-media__open:focus-visible {
+  background: var(--accent);
+  color: var(--color-void);
+  box-shadow: 0 0 22px -6px var(--accent);
+}
+
+.mission-media__count {
+  font-weight: var(--w-semi);
+  letter-spacing: 0.06em;
+  opacity: 0.75;
+  text-transform: none;
+}
+
+/* ---------------------------------------------------------------------------
+   2. The full-screen walkthrough.
+   z-index 50: above the CV panel (41) and the mission panel (30), below the
+   reticle cursor (60) and the star gate (90).
+   --------------------------------------------------------------------------- */
+
+.dossier {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  --frame-line: rgba(255, 255, 255, 0.1);
+  /* The ground lives on the CONTAINER, fully opaque, not on the scrim child.
+     An alpha scrim was measurably wrong here: even at 0.97 the mission panel's
+     white headings and the CV nav stayed legible underneath, and a walkthrough
+     of a medical UI with a portfolio bleeding through it is unreadable. This is
+     the same opacity contract the CV panel follows. */
+  background: var(--color-void);
+}
+
+/* Transparent click-catcher only — the container above owns the colour. It
+   still fills the viewport so that a click anywhere outside the content closes
+   the walkthrough. */
+.dossier__scrim {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  padding: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.dossier__shell {
+  position: relative;
+  height: 100%;
+  display: grid;
+  /* head / rail / stage / strip. The stage is the only row that flexes;
+     minmax(0, 1fr) rather than 1fr so it is allowed to shrink below the
+     intrinsic height of the image inside it. */
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  gap: 0.9rem;
+  padding: calc(var(--gutter) + var(--safe-t, 0px)) calc(var(--gutter) + var(--safe-r, 0px))
+    calc(0.9rem + var(--safe-b, 0px)) calc(var(--gutter) + var(--safe-l, 0px));
+  outline: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .dossier__shell {
+    animation: dossier-in 0.4s var(--ease-out) both;
+  }
+}
+
+@keyframes dossier-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.995); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* --- Header --- */
+
+.dossier__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.dossier__eyebrow {
+  display: block;
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--accent, var(--color-violet));
+  margin-bottom: 0.3rem;
+}
+
+.dossier__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: var(--w-xbold);
+  font-size: clamp(1.1rem, 2.2vw, 1.6rem);
+  letter-spacing: -0.02em;
+  color: var(--color-starlight);
+}
+
+.dossier__meta {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-shrink: 0;
+}
+
+.dossier__counter {
+  font-size: 0.72rem;
+  color: var(--color-slate);
+}
+
+.dossier__close {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid var(--color-panel-line);
+  border-radius: var(--panel-radius);
+  background: none;
+  color: var(--color-slate);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: color 0.18s ease, border-color 0.18s ease;
+}
+
+.dossier__close:hover,
+.dossier__close:focus-visible {
+  color: var(--color-starlight);
+  border-color: var(--color-starlight);
+}
+
+.dossier__esc {
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+/* --- Chapter rail --- */
+
+.dossier__rail {
+  overflow-x: auto;
+  overflow-y: hidden;
+  /* The journey is one line you move along, so the rail scrolls rather than
+     wrapping into a block that would reorder itself at every breakpoint. */
+  scrollbar-width: thin;
+  border-bottom: 1px solid var(--color-panel-line);
+}
+
+.dossier__rail ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: 0.2rem;
+  min-width: max-content;
+}
+
+.dossier__chapter {
+  display: flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  padding: 0.5rem 0.75rem;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  color: var(--color-slate-dim);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.18s ease, border-color 0.18s ease;
+}
+
+.dossier__chapter-index {
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  opacity: 0.7;
+}
+
+.dossier__chapter-title {
+  font-size: 0.74rem;
+  font-weight: var(--w-semi);
+  letter-spacing: 0.02em;
+}
+
+.dossier__chapter:hover,
+.dossier__chapter:focus-visible {
+  color: var(--color-starlight);
+}
+
+.dossier__chapter[aria-current='true'] {
+  color: var(--color-starlight);
+  border-bottom-color: var(--accent, var(--color-violet));
+}
+
+/* --- Stage --- */
+
+.dossier__stage {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 0;
+}
+
+.dossier__arrow {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--color-panel-line);
+  border-radius: 50%;
+  background: rgba(8, 13, 24, 0.8);
+  color: var(--color-starlight);
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: border-color 0.18s ease, background 0.18s ease, opacity 0.18s ease;
+}
+
+.dossier__arrow:hover:not(:disabled),
+.dossier__arrow:focus-visible:not(:disabled) {
+  border-color: var(--accent, var(--color-violet));
+  background: var(--color-panel);
+}
+
+.dossier__arrow:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+
+.dossier__frame {
+  margin: 0;
+  min-height: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  align-items: center;
+  justify-content: center;
+}
+
+.dossier__media {
+  min-height: 0;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border: 1px solid var(--frame-line);
+  border-radius: var(--panel-radius);
+  /* A real drop shadow, not a glow: these are documents laid on a surface, and
+     the shadow is what stops a white rectangle from levitating. */
+  box-shadow: 0 30px 70px -30px rgba(0, 0, 0, 0.95), 0 0 0 1px rgba(0, 0, 0, 0.4);
+  background: #fff;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .dossier__media {
+    animation: dossier-frame-in 0.32s var(--ease-out) both;
+  }
+}
+
+@keyframes dossier-frame-in {
+  from { opacity: 0; transform: scale(0.99); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* The recording is 1908x1086. Declaring that ratio means the element reserves
+   the right shape before any metadata loads — which matters because preload is
+   `none`, so the browser knows nothing about the file until play is pressed.
+   Without it the box collapsed to a full-width letterbox with black bars down
+   both sides of the poster. */
+.dossier__media--video {
+  aspect-ratio: 1908 / 1086;
+  width: auto;
+  height: 100%;
+  max-width: 100%;
+  background: #000;
+}
+
+.dossier__caption {
+  display: flex;
+  align-items: baseline;
+  gap: 0.7rem;
+  max-width: 74ch;
+  text-align: left;
+  flex-shrink: 0;
+}
+
+.dossier__caption-chapter {
+  font-size: 0.58rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--accent, var(--color-violet));
+  white-space: nowrap;
+  padding-top: 0.15rem;
+}
+
+.dossier__caption p {
+  margin: 0;
+  font-size: 0.84rem;
+  font-weight: var(--w-reg);
+  line-height: 1.5;
+  color: var(--color-slate);
+}
+
+.dossier__blurb {
+  margin: 0.35rem 0 0;
+  /* Narrower than --measure: it shares the header row with the counter and the
+     close control, and a full-measure paragraph would run under them. */
+  max-width: 58ch;
+  font-size: 0.76rem;
+  font-weight: var(--w-light);
+  line-height: 1.55;
+  color: var(--color-slate-dim);
+}
+
+/* --- Thumbnail strip --- */
+
+.dossier__strip {
+  display: flex;
+  gap: 0.4rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 0.3rem;
+  scrollbar-width: thin;
+}
+
+.dossier__thumb {
+  position: relative;
+  flex: 0 0 auto;
+  width: 92px;
+  aspect-ratio: 16 / 10;
+  padding: 0;
+  border: 1px solid var(--color-panel-line);
+  border-radius: var(--panel-radius);
+  background: var(--color-void);
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color 0.18s ease, opacity 0.18s ease;
+  opacity: 0.5;
+}
+
+.dossier__thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+}
+
+.dossier__thumb:hover,
+.dossier__thumb:focus-visible {
+  opacity: 0.85;
+  border-color: var(--color-slate);
+}
+
+.dossier__thumb[data-active='true'] {
+  opacity: 1;
+  border-color: var(--accent, var(--color-violet));
+  box-shadow: 0 0 16px -4px var(--accent, var(--color-violet));
+}
+
+.dossier__thumb-play {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(1, 2, 6, 0.5);
+  color: var(--color-starlight);
+  font-size: 0.7rem;
+}
+
+/* ---------------------------------------------------------------------------
+   3. Narrow screens.
+   The stage arrows are the first thing to go: at these widths they eat frame
+   width that the screenshot needs more, and the thumbnail strip already gives
+   a direct way to move.
+   --------------------------------------------------------------------------- */
+
+@media (max-width: 900px) {
+  .dossier__stage {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .dossier__arrow {
+    display: none;
+  }
+
+  /* Chapter context is a nicety; on a short screen the screenshot needs the
+     pixels more. The rail still names the chapter. */
+  .dossier__blurb {
+    display: none;
+  }
+
+  /* These are landscape captures of a desktop app on a portrait phone, so the
+     frame is width-limited and can never fill the row. Centred, that left a
+     band of dead space above AND below the shot; anchored to the top it reads
+     as a document under its heading, and the slack collects in one place. */
+  .dossier__frame {
+    justify-content: flex-start;
+  }
+
+  .dossier__caption {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .dossier__thumb {
+    width: 76px;
+  }
+}
+
+@media (max-width: 640px) {
+  .dossier__shell {
+    gap: 0.7rem;
+  }
+
+  .dossier__title {
+    font-size: 1rem;
+  }
+
+  .dossier__caption p {
+    font-size: 0.78rem;
+  }
+
+  /* Tightened so "Raha · Platform walkthrough" holds one line beside the
+     counter instead of wrapping into the title. */
+  .dossier__eyebrow {
+    font-size: 0.56rem;
+    letter-spacing: 0.1em;
+  }
+
+  .dossier__meta {
+    gap: 0.6rem;
+  }
+
+  /* A contact sheet rather than a scrubber.
+     A landscape desktop capture on a portrait phone can only ever be as wide as
+     the screen, so the stage cannot use the height it is given and a band of
+     empty space opens under the caption. Spending it on a three-up grid turns
+     that waste into the thing a phone is worst at — seeing where you are in a
+     16-shot chapter — and the arrows are gone at this width anyway.
+     Bounded and scrollable so the longest chapter cannot push the stage off. */
+  .dossier__strip {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    align-content: start;
+    overflow-x: hidden;
+    overflow-y: auto;
+    max-height: 38vh;
+  }
+
+  .dossier__thumb {
+    width: auto;
+  }
+
+  /* The teaser grid drops to two columns rather than shrinking four chips to
+     thumbnail-of-a-thumbnail size. */
+  .mission-media__teaser {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

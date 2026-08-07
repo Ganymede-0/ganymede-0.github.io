@@ -56,6 +56,13 @@ export const useNavigationStore = create((set, get) => ({
   cvOpen: false,
   cvSection: null,
 
+  // Product walkthrough overlay. `dossierIndex` is a position in the project's
+  // flattened media reel, so opening from a specific thumbnail and opening from
+  // the panel's main button are the same action with a different starting
+  // frame. Null index means "open at the beginning".
+  dossierOpen: false,
+  dossierIndex: 0,
+
   setHovered: (id) => set({ hoveredId: id }),
 
   // Arrival. Called both by scrolling to the end of the approach and by the
@@ -128,6 +135,13 @@ export const useNavigationStore = create((set, get) => ({
   },
 
   arrivedAtOverview: () => set({ view: 'overview', activeId: null }),
+
+  // The dossier opens OVER the mission panel rather than replacing it: closing
+  // it returns the visitor to the project they were already reading, with the
+  // camera still parked at that body. Nothing about the 3D state changes.
+  openDossier: (index = 0) => set({ dossierOpen: true, dossierIndex: index }),
+  setDossierIndex: (index) => set({ dossierIndex: index }),
+  closeDossier: () => set({ dossierOpen: false }),
 
   openCv: (section = null) => set({ cvOpen: true, cvSection: section }),
 

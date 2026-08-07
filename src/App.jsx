@@ -5,6 +5,7 @@ import Prologue from './ui/Prologue'
 import StarGate from './ui/StarGate'
 import ArrivalCue from './ui/ArrivalCue'
 import MissionPanel from './ui/MissionPanel'
+import MediaDossier from './ui/MediaDossier'
 import CvPanel from './ui/CvPanel'
 import CursorHud from './ui/CursorHud'
 import StarFallback from './ui/StarFallback'
@@ -12,6 +13,7 @@ import './styles/tokens.css'
 import './styles/ui.css'
 import './styles/prologue.css'
 import './styles/nebula.css'
+import './styles/dossier.css'
 
 // The canvas is a single persistent scene beneath everything. It is never
 // unmounted or remounted between the approach sequence and the system — the
@@ -36,6 +38,12 @@ export default function App() {
         </div>
         <ArrivalCue />
         <CvPanel />
+
+        {/* Sits above both panels and covers the scene. Outside .overlay for
+            the same reason CvPanel is: .overlay is its own stacking context,
+            so anything that must rise above the CV panel has to be a sibling
+            of it rather than a descendant of the HUD layer. */}
+        <MediaDossier />
       </div>
 
       {/* Scroll-driven approach. Renders null once the visitor has arrived. */}

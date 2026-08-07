@@ -26,6 +26,11 @@ dist-ssr
 *.pem
 *.key
 
+# Source media for the Raha walkthrough. scripts/build-media.mjs reads this
+# from the repo root and writes the deployable copy to public/media/raha/, so
+# committing it too would put the same 13 MB in the repository twice.
+/Raha - Demo.mp4
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

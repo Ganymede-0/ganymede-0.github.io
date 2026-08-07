@@ -1,0 +1,371 @@
+{
+  "generated": "2026-08-07",
+  "shots": [
+    {
+      "slug": "about-top",
+      "source": "Screenshot_about_top.png",
+      "width": 1600,
+      "height": 1000
+    },
+    {
+      "slug": "admin-home",
+      "source": "Screenshot_admin_home.png",
+      "width": 1600,
+      "height": 1000
+    },
+    {
+      "slug": "admin-issues",
+      "source": "Screenshot_admin_issues.png",
+      "width": 1600,
+      "height": 1000
+    },
+    {
+      "slug": "admin-logs",
+      "source": "Screenshot_admin_logs.png",
+      "width": 1600,
+      "height": 1000
+    },
+    {
+      "slug": "admin-manual-support",
+      "source": "Screenshot_admin_manual_support.png",
+      "width": 1600,
+      "height": 1000
+    },
+    {
+      "slug": "admin-manual-top",
+      "source": "Screenshot_admin_manual_top.png",
+      "width": 1600,
+      "height": 1000
+    },
+    {
+      "slug": "admin-manual-workflows1",
+      "source": "Screenshot_admin_manual_workflows1.png",
+      "width": 1600,
+      "height": 1000
+    },
+    {
+      "slug": "admin-manual-workflows2",
+      "source": "Screenshot_admin_manual_workflows2.png",
+      "width": 1600,
+      "height": 1000
+    },
+    {
+      "slug": "admin-profile",
+      "source": "Screenshot_admin_profile.png",
+      "width": 1600,
+      "height": 1000
+    },
+    {
+      "slug": "admin-users",
+      "source": "Screenshot_admin_users.png",
+      "width": 1600,
+      "height": 1000
+    },
+    {
+      "slug": "contact",
+      "source": "Screenshot_contact.png",
+      "width": 1600,
+      "height": 1000
+    },
+    {
+      "slug": "dark-analyze",
+      "source": "Screenshot_dark_analyze.png",
+      "width": 1600,
+      "height": 1000
+    },
+    {
+      "slug": "dark-results",
+      "source": "Screenshot_dark_results.png",
+      "width": 1600,
+      "height": 1000
+    },
+    {
+      "slug": "forgot-form",
+      "source": "Screenshot_forgot_form.png",
+      "width": 1600,
+      "height": 1000
+    },
+    {
+      "slug": "forgot-sent",
+      "source": "Screenshot_forgot_sent.png",
+      "width": 1600,
+      "height": 1000
+    },
+    {
+      "slug": "home",
+      "source": "Screenshot_home.png",
+      "width": 1600,
+      "height": 1000
+    },
+    {
+      "slug": "login",
+      "source": "Screenshot_login.png",
+      "width": 1600,
+      "height": 1000
+    },
+    {
+      "slug": "logout-admin",
+      "source": "Screenshot_logout_admin.png",
+      "width": 1600,
+      "height": 1000
+    },
+    {
+      "slug": "logout-researcher",
+      "source": "Screenshot_logout_researcher.png",
+      "width": 1600,
+      "height": 1000
+    },
+    {
+      "slug": "manual-quickstart",
+      "source": "Screenshot_manual_quickstart.png",
+      "width": 1600,
+      "height": 1000
+    },
+    {
+      "slug": "manual-support",
+      "source": "Screenshot_manual_support.png",
+      "width": 1600,
+      "height": 1000
+    },
+    {
+      "slug": "manual-top",
+      "source": "Screenshot_manual_top.png",
+      "width": 1600,
+      "height": 1000
+    },
+    {
+      "slug": "manual-workflows1",
+      "source": "Screenshot_manual_workflows1.png",
+      "width": 1600,
+      "height": 1000
+    },
+    {
+      "slug": "manual-workflows2",
+      "source": "Screenshot_manual_workflows2.png",
+      "width": 1600,
+      "height": 1000
+    },
+    {
+      "slug": "res-analyze-bottom",
+      "source": "Screenshot_res_analyze_bottom.png",
+      "width": 1600,
+      "height": 1000
+    },
+    {
+      "slug": "res-analyze-top",
+      "source": "Screenshot_res_analyze_top.png",
+      "width": 1600,
+      "height": 1000
+    },
+    {
+      "slug": "res-compare1",
+      "source": "Screenshot_res_compare1.png",
+      "width": 1600,
+      "height": 1000
+    },
+    {
+      "slug": "res-compare2",
+      "source": "Screenshot_res_compare2.png",
+      "width": 1600,
+      "height": 1000
+    },
+    {
+      "slug": "res-contact",
+      "source": "Screenshot_res_contact.png",
+      "width": 1600,
+      "height": 1000
+    },
+    {
+      "slug": "res-guides1",
+      "source": "Screenshot_res_guides1.png",
+      "width": 1600,
+      "height": 1000
+    },
+    {
+      "slug": "res-guides2",
+      "source": "Screenshot_res_guides2.png",
+      "width": 1600,
+      "height": 1000
+    },
+    {
+      "slug": "res-guides3",
+      "source": "Screenshot_res_guides3.png",
+      "width": 1600,
+      "height": 1000
+    },
+    {
+      "slug": "res-guides4",
+      "source": "Screenshot_res_guides4.png",
+      "width": 1600,
+      "height": 1000
+    },
+    {
+      "slug": "res-guides5",
+      "source": "Screenshot_res_guides5.png",
+      "width": 1600,
+      "height": 1000
+    },
+    {
+      "slug": "res-guides6",
+      "source": "Screenshot_res_guides6.png",
+      "width": 1600,
+      "height": 1000
+    },
+    {
+      "slug": "res-guides7",
+      "source": "Screenshot_res_guides7.png",
+      "width": 1600,
+      "height": 1000
+    },
+    {
+      "slug": "res-guides8",
+      "source": "Screenshot_res_guides8.png",
+      "width": 1600,
+      "height": 1000
+    },
+    {
+      "slug": "res-guides-bottom",
+      "source": "Screenshot_res_guides_bottom.png",
+      "width": 1600,
+      "height": 1000
+    },
+    {
+      "slug": "res-guides-top",
+      "source": "Screenshot_res_guides_top.png",
+      "width": 1600,
+      "height": 1000
+    },
+    {
+      "slug": "res-home",
+      "source": "Screenshot_res_home.png",
+      "width": 1600,
+      "height": 1000
+    },
+    {
+      "slug": "res-manual-review",
+      "source": "Screenshot_res_manual_review.png",
+      "width": 1600,
+      "height": 1000
+    },
+    {
+      "slug": "res-manual-support",
+      "source": "Screenshot_res_manual_support.png",
+      "width": 1600,
+      "height": 1000
+    },
+    {
+      "slug": "res-manual-top",
+      "source": "Screenshot_res_manual_top.png",
+      "width": 1600,
+      "height": 1000
+    },
+    {
+      "slug": "res-manual-workflows1",
+      "source": "Screenshot_res_manual_workflows1.png",
+      "width": 1600,
+      "height": 1000
+    },
+    {
+      "slug": "res-manual-workflows2",
+      "source": "Screenshot_res_manual_workflows2.png",
+      "width": 1600,
+      "height": 1000
+    },
+    {
+      "slug": "res-metrics1",
+      "source": "Screenshot_res_metrics1.png",
+      "width": 1600,
+      "height": 1000
+    },
+    {
+      "slug": "res-metrics2",
+      "source": "Screenshot_res_metrics2.png",
+      "width": 1600,
+      "height": 1000
+    },
+    {
+      "slug": "res-profile-edit-bottom",
+      "source": "Screenshot_res_profile_edit_bottom.png",
+      "width": 1600,
+      "height": 1000
+    },
+    {
+      "slug": "res-profile-edit-top",
+      "source": "Screenshot_res_profile_edit_top.png",
+      "width": 1600,
+      "height": 1000
+    },
+    {
+      "slug": "res-profile-overview",
+      "source": "Screenshot_res_profile_overview.png",
+      "width": 1600,
+      "height": 1000
+    },
+    {
+      "slug": "res-report1",
+      "source": "Screenshot_res_report1.png",
+      "width": 1600,
+      "height": 1000
+    },
+    {
+      "slug": "res-report2",
+      "source": "Screenshot_res_report2.png",
+      "width": 1600,
+      "height": 1000
+    },
+    {
+      "slug": "res-results",
+      "source": "Screenshot_res_results.png",
+      "width": 1600,
+      "height": 1000
+    },
+    {
+      "slug": "res-scan1",
+      "source": "Screenshot_res_scan1.png",
+      "width": 1600,
+      "height": 1000
+    },
+    {
+      "slug": "res-scan2",
+      "source": "Screenshot_res_scan2.png",
+      "width": 1600,
+      "height": 1000
+    },
+    {
+      "slug": "signup-bottom",
+      "source": "Screenshot_signup_bottom.png",
+      "width": 1600,
+      "height": 1000
+    },
+    {
+      "slug": "signup-top",
+      "source": "Screenshot_signup_top.png",
+      "width": 1600,
+      "height": 1000
+    },
+    {
+      "slug": "tutorial1",
+      "source": "Screenshot_tutorial1.png",
+      "width": 1600,
+      "height": 1000
+    },
+    {
+      "slug": "tutorial2",
+      "source": "Screenshot_tutorial2.png",
+      "width": 1600,
+      "height": 1000
+    },
+    {
+      "slug": "tutorial3",
+      "source": "Screenshot_tutorial3.png",
+      "width": 1600,
+      "height": 1000
+    },
+    {
+      "slug": "welcom-sarah-dark",
+      "source": "welcom sarah - dark.png",
+      "width": 1600,
+      "height": 1000
+    }
+  ]
+}
