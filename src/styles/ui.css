@@ -5,9 +5,11 @@
    airport by someone who is deciding whether to schedule a call.
    --------------------------------------------------------------------------- */
 
-/* Fixed, not relative. During the approach the document scrolls beneath a
-   stationary scene — the canvas must not travel with the text, because the
-   illusion is that scrolling moves the CAMERA, not the page. */
+/* The site is a single fixed viewport: the scene, with panels over it. Every
+   panel that holds more than a screen of content scrolls INSIDE itself, so the
+   document never scrolls — any residual page scroll would only expose empty
+   space below the canvas, and on a phone a stray swipe would drag the whole
+   scene off screen. */
 .app {
   position: fixed;
   inset: 0;
@@ -16,17 +18,7 @@
   z-index: 0;
 }
 
-/* While the approach is running the document must be free to grow past the
-   viewport, or there is nothing to scroll. tokens.css pins #root to 100dvh for
-   the fixed system layout; this releases it for the duration. */
-body:not(.is-system) #root {
-  height: auto;
-  min-height: 100dvh;
-}
-
-/* Arrived. The system is a fixed-viewport experience, so any residual scroll
-   would only expose empty space below the canvas. */
-body.is-system {
+body {
   overflow: hidden;
 }
 
@@ -66,204 +58,228 @@ body.is-system {
 .hud--identity {
   top: calc(var(--gutter) + var(--safe-t, 0px));
   left: calc(var(--gutter) + var(--safe-l, 0px));
-  max-width: min(23rem, 62vw);
-  padding-left: 0.9rem;
-  border-left: 1px solid var(--color-panel-line);
+  max-width: min(30rem, 68vw);
 }
 
-.identity__name {
+/* --- The crew plate --------------------------------------------------------
+   Emblem, then the block, with a leader rule running out of it. */
+.mark {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 0.95rem;
+}
+
+.mark__emblem {
+  width: 3.9rem;
+  height: 3.9rem;
+  flex-shrink: 0;
+  opacity: 0.95;
+  filter: drop-shadow(0 0 14px rgba(139, 124, 255, 0.35));
+}
+
+.mark__ring {
+  fill: none;
+  stroke: rgba(139, 124, 255, 0.4);
+  stroke-width: 1;
+}
+
+.mark__orbit {
+  fill: none;
+  stroke: rgba(205, 210, 255, 0.55);
+  stroke-width: 1;
+}
+
+.mark__orbit--inner {
+  stroke: rgba(255, 217, 163, 0.45);
+}
+
+.mark__moon {
+  fill: #dfe6ff;
+}
+
+.mark__moon--far {
+  fill: #ffd9a3;
+  opacity: 0.85;
+}
+
+.mark__body {
+  min-width: 0;
+}
+
+/* The name, in the interface face rather than a serif — one voice across the
+   whole system. One step up the weight ladder from the text around it, which is
+   enough to make it the first thing read without tipping into a bold, and
+   opened up slightly: a squared-off face at display size needs air between the
+   letters or it reads as a block. */
+.mark__name {
+  margin: 0 0 0.3rem;
   font-family: var(--font-display);
-  /* Fluid: scales continuously between phone and desktop instead of stepping
-     at a breakpoint, so there is no viewport width where it looks wrong. */
-  font-size: clamp(1.25rem, 1rem + 1.4vw, 1.95rem);
-  font-weight: var(--w-xbold);
-  letter-spacing: -0.035em;
-  line-height: 1;
-  margin: 0 0 0.45rem;
-  background: linear-gradient(180deg, #ffffff 0%, #b9c4d8 100%);
+  font-weight: var(--w-med);
+  font-size: clamp(1.5rem, 1rem + 2vw, 2.5rem);
+  line-height: 1.05;
+  letter-spacing: 0.012em;
+  background: var(--ink-starlight);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+  opacity: 0.96;
 }
 
-.identity__role,
-.identity__location {
-  margin: 0;
-  font-size: 0.7rem;
-  color: var(--color-slate);
-  text-transform: uppercase;
-  letter-spacing: 0.09em;
-}
-
-.identity__role {
-  font-family: var(--font-tech);
-  font-size: 0.62rem;
-  letter-spacing: 0.14em;
-  color: var(--color-violet);
-}
-
-.identity__location {
-  color: var(--color-slate-dim);
-  margin-top: 0.2rem;
-}
-
-/* --- CV navigation (bottom-left) ----------------------------------------- */
-.cv-nav {
-  bottom: calc(var(--gutter) + var(--safe-b, 0px));
-  left: calc(var(--gutter) + var(--safe-l, 0px));
-  min-width: 15rem;
-  max-width: min(20rem, 70vw);
-}
-
-.cv-nav__caption {
-  font-family: var(--font-tech);
-  font-size: 0.56rem;
-  text-transform: uppercase;
-  letter-spacing: 0.18em;
-  color: var(--color-slate-dim);
-  margin: 0 0 0.7rem 0.6rem;
-}
-
-.cv-nav ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
-}
-
-.cv-nav__item {
-  position: relative;
+.mark__role {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  width: 100%;
-  background: none;
-  border: 0;
-  border-left: 2px solid transparent;
-  padding: 0.44rem 0.6rem;
-  color: var(--color-slate);
-  cursor: pointer;
-  text-align: left;
-  transition: color 0.2s var(--ease-out), border-color 0.2s var(--ease-out),
-    background 0.2s var(--ease-out), padding-left 0.2s var(--ease-out);
-}
-
-.cv-nav__item:hover,
-.cv-nav__item:focus-visible,
-.cv-nav__item.is-active {
-  color: var(--color-starlight);
-  border-left-color: var(--color-violet);
-  background: linear-gradient(90deg, rgba(139, 124, 255, 0.1), transparent 72%);
-  padding-left: 0.85rem;
-}
-
-.cv-nav__code {
+  flex-wrap: wrap;
+  gap: 0.18rem 0.1rem;
+  margin: 0 0 0.34rem;
   font-family: var(--font-tech);
-  font-size: 0.58rem;
+  font-size: 0.76rem;
+  font-weight: var(--w-light);
+  letter-spacing: 0.04em;
+  color: #b9c3da;
+}
+
+/* Separators as marks rather than characters, so they stay optically centred
+   whatever the line wraps to. */
+.mark__dot {
+  width: 3px;
+  height: 3px;
+  margin: 0 0.44rem;
+  border-radius: 50%;
+  background: var(--color-violet);
+  opacity: 0.65;
+}
+
+.mark__place {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0;
+  font-family: var(--font-tech);
+  font-size: 0.7rem;
+  font-weight: var(--w-light);
+  letter-spacing: 0.045em;
   color: var(--color-slate-dim);
-  letter-spacing: 0.06em;
 }
 
-.cv-nav__item:hover .cv-nav__code,
-.cv-nav__item.is-active .cv-nav__code {
-  color: var(--color-violet);
+.mark__place svg {
+  flex-shrink: 0;
+  opacity: 0.8;
 }
 
-.cv-nav__label {
-  font-family: var(--font-display);
-  font-size: 0.95rem;
-  font-weight: var(--w-bold);
-  letter-spacing: -0.02em;
+/* The leader. Starts under the block and fades out to the right. */
+.mark__rule {
+  position: absolute;
+  left: 4.85rem;
+  right: -3.5rem;
+  bottom: -0.7rem;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(139, 124, 255, 0.45), rgba(139, 124, 255, 0));
+  pointer-events: none;
 }
 
-.cv-nav__arrow {
-  margin-left: auto;
-  font-size: 0.85rem;
+/* --- Social links ----------------------------------------------------------
+   ONE rule, used by the HUD and by the CV. See SocialLinks.jsx.
+   At rest: three glyphs. On hover or focus the handle unfurls beside the mark,
+   animating grid-template-columns from 0fr to 1fr — the only technique that
+   animates an element to its own intrinsic width without a hard-coded guess. */
+.social-links {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.social-link {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid transparent;
+  border-radius: var(--panel-radius);
+  color: var(--color-slate);
+  text-decoration: none;
+  transition: color 0.25s var(--ease-out), border-color 0.25s var(--ease-out),
+    background 0.25s var(--ease-out), gap 0.4s var(--ease-out);
+}
+
+.social-link svg {
+  flex-shrink: 0;
+  display: block;
+}
+
+.social-link:hover,
+.social-link:focus-visible {
+  color: var(--color-starlight);
+  border-color: var(--color-panel-line);
+  background: rgba(139, 124, 255, 0.08);
+}
+
+/* THE REVEAL.
+   The handle unfurls from nothing to its own width. The ceiling is set well
+   past the longest handle (a 24-character email address) and the span is
+   `width: max-content`, so the OPEN state is the handle's real width — 143px
+   for the email, measured — and the ceiling only ever bounds the animation,
+   never the layout. Nothing here is clipped by a guess.
+
+   (The 0fr -> 1fr grid-track technique does the same job without a ceiling and
+   would be slightly cleaner. This is the version that is measured and known
+   good, so it stays until there is a reason to touch it.) */
+.social-link__reveal {
+  display: grid;
+  max-width: 0;
   opacity: 0;
-  transform: translateX(-4px);
-  transition: opacity 0.2s var(--ease-out), transform 0.2s var(--ease-out);
-  color: var(--color-violet);
+  overflow: hidden;
+  transition: max-width 0.4s var(--ease-out), opacity 0.25s ease;
 }
 
-.cv-nav__item:hover .cv-nav__arrow,
-.cv-nav__item:focus-visible .cv-nav__arrow,
-.cv-nav__item.is-active .cv-nav__arrow {
+.social-link__reveal > span {
+  width: max-content;
+  white-space: nowrap;
+  font-family: var(--font-tech);
+  font-size: 0.68rem;
+  font-weight: var(--w-med);
+  letter-spacing: 0.03em;
+}
+
+.social-link:hover .social-link__reveal,
+.social-link:focus-visible .social-link__reveal {
+  max-width: 16rem;
   opacity: 1;
-  transform: translateX(0);
 }
 
-/* --- Contact + hint ------------------------------------------------------ */
+/* The gap only exists once there is something to separate, so it animates with
+   the reveal rather than reserving space while the handle is hidden. */
+.social-link:hover,
+.social-link:focus-visible {
+  gap: 0.5rem;
+}
+
+/* Motion-sensitive visitors get the handle immediately, no unfurl. */
+@media (prefers-reduced-motion: reduce) {
+  .social-link__reveal {
+    max-width: 16rem;
+    opacity: 1;
+    transition: none;
+  }
+  .social-link {
+    gap: 0.5rem;
+  }
+}
+
+/* --- Anchored HUD blocks --------------------------------------------------- */
 .hud--contact {
   bottom: calc(var(--gutter) + var(--safe-b, 0px));
   right: calc(var(--gutter) + var(--safe-r, 0px));
   display: flex;
   align-items: center;
   gap: 0.5rem;
-}
-
-.contact-link {
-  display: flex;
-  align-items: center;
-  gap: 0;
-  color: var(--color-slate);
-  text-decoration: none;
-  padding: 0.45rem 0.6rem;
-  border: 1px solid transparent;
-  border-radius: 999px;
-  transition: color 0.25s var(--ease-out), border-color 0.25s var(--ease-out),
-    background 0.25s var(--ease-out), gap 0.4s var(--ease-out);
-}
-
-.contact-link svg {
-  flex-shrink: 0;
-  display: block;
-}
-
-/* The reveal. A grid track animating 0fr -> 1fr is the only way to transition
-   to an element's intrinsic width without hard-coding a max-width that would
-   clip longer handles (the email address is 24 characters). */
-.contact-link__reveal {
-  display: grid;
-  grid-template-columns: 0fr;
-  opacity: 0;
-  transition: grid-template-columns 0.4s var(--ease-out), opacity 0.25s ease;
-}
-
-.contact-link__reveal > span {
-  min-width: 0;
-  overflow: hidden;
-  white-space: nowrap;
-  font-family: var(--font-tech);
-  font-size: 0.68rem;
-  font-weight: var(--w-semi);
-  letter-spacing: 0.02em;
-}
-
-.contact-link:hover,
-.contact-link:focus-visible {
-  color: var(--color-void);
-  background: var(--color-amber);
-  border-color: var(--color-amber);
-  gap: 0.5rem;
-  box-shadow: 0 0 26px -8px var(--color-amber);
-}
-
-.contact-link:hover .contact-link__reveal,
-.contact-link:focus-visible .contact-link__reveal {
-  grid-template-columns: 1fr;
-  opacity: 1;
-}
-
-/* Motion-sensitive visitors get the handle immediately, no unfurl. */
-@media (prefers-reduced-motion: reduce) {
-  .contact-link__reveal { grid-template-columns: 1fr; opacity: 1; }
-  .contact-link { gap: 0.5rem; }
+  transition: opacity 0.3s var(--ease-out);
 }
 
 .hud--hint {
-  top: calc(var(--gutter) + var(--safe-t, 0px));
+  /* Clears the sound toggle, which owns the top-right corner in every view. */
+  top: calc(var(--gutter) + var(--safe-t, 0px) + 2.9rem);
   right: calc(var(--gutter) + var(--safe-r, 0px));
   margin: 0;
   font-size: 0.66rem;
@@ -383,9 +399,9 @@ body.is-system {
 
 .mission-panel__title {
   font-family: var(--font-display);
-  font-size: clamp(1.75rem, 1.1rem + 2.2vw, 2.85rem);
-  font-weight: var(--w-xbold);
-  letter-spacing: -0.045em;
+  font-size: clamp(1.8rem, 1.15rem + 2.3vw, 2.95rem);
+  font-weight: var(--w-black);
+  letter-spacing: -0.04em;
   line-height: 0.98;
   margin: 0 0 0.5rem;
   background: linear-gradient(178deg, #ffffff 0%, #c3ccdd 100%);
@@ -447,7 +463,9 @@ body.is-system {
 }
 
 .mission-panel__section h3 {
-  font-family: var(--font-mono);
+  /* Chrome, not a readout — the UI sans. See tokens.css: the mono role is
+     reserved for values that align in columns. */
+  font-family: var(--font-tech);
   font-size: 0.64rem;
   text-transform: uppercase;
   letter-spacing: 0.16em;
@@ -505,7 +523,9 @@ body.is-system {
   border: 1px solid var(--accent);
   color: var(--accent);
   text-decoration: none;
-  font-family: var(--font-mono);
+  /* Chrome, not a readout — the UI sans. See tokens.css: the mono role is
+     reserved for values that align in columns. */
+  font-family: var(--font-tech);
   font-weight: 700;
   font-size: 0.68rem;
   text-transform: uppercase;
@@ -533,7 +553,9 @@ body.is-system {
   background: none;
   border: 0;
   color: var(--color-slate);
-  font-family: var(--font-mono);
+  /* Chrome, not a readout — the UI sans. See tokens.css: the mono role is
+     reserved for values that align in columns. */
+  font-family: var(--font-tech);
   font-weight: 700;
   font-size: 0.68rem;
   text-transform: uppercase;
@@ -675,6 +697,26 @@ body.is-system {
 @media (pointer: coarse) {
   .cursor-hud { display: none; }
   body { cursor: auto; }
+
+  /* A finger is not a cursor: 44px is the smallest thing it can hit reliably,
+     and these were the controls measured under it — the walkthrough button at
+     37px, the sound toggle at 33, the contact icons at 30. Declared as a floor
+     rather than as new padding so nothing moves on a pointer device. */
+  .mission-media__open,
+  .sound-toggle,
+  .social-link,
+  .cert__card {
+    min-height: 44px;
+  }
+
+  /* Width matters as much as height for the two icon-only controls: a 33x44
+     button is still a miss waiting to happen. Both are wider than this once
+     they carry a label, so the floor only bites where the label is hidden. */
+  .social-link,
+  .sound-toggle {
+    min-width: 44px;
+    justify-content: center;
+  }
 }
 
 /* --- Suspense fallback: a single breathing star --------------------------- */
@@ -703,418 +745,9 @@ body.is-system {
   50% { opacity: 0; }
 }
 
-/* --- CV panel (left drawer) ---------------------------------------------- */
-/* --------------------------------------------------------------------------
-   OPACITY CONTRACT for overlay panels.
-
-   These windows must be fully opaque. The previous build relied on a 0.94-alpha
-   fill plus `backdrop-filter: blur()`, which fails in two ways:
-     · 6% of the scene still shows through, and against a bright bloomed planet
-       that is plainly visible behind body text;
-     · `backdrop-filter` is unreliable over a WebGL canvas and is ignored
-       entirely in several browsers, dropping straight back to the raw alpha.
-   Solid colour, no alpha, no backdrop-filter. Legibility is not negotiable.
-   -------------------------------------------------------------------------- */
-.cv-backdrop {
-  position: absolute;
-  inset: 0;
-  z-index: 40;
-  background: rgba(1, 2, 6, 0.82);
-  pointer-events: auto;
-}
-
-.cv-panel {
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 41;
-  height: 100%;
-  width: min(41rem, 50vw);
-  display: flex;
-  flex-direction: column;
-  /* Fully opaque. */
-  background: var(--color-surface);
-  border-right: 1px solid var(--color-panel-line);
-  box-shadow: 50px 0 100px -50px rgba(0, 0, 0, 0.9),
-    inset -1px 0 0 rgba(255, 255, 255, 0.05);
-  pointer-events: auto;
-}
-
-/* A subtle interior lift, painted INSIDE the opaque surface rather than as
-   transparency, so it costs nothing in legibility. */
-.cv-panel__head {
-  background: linear-gradient(180deg, #0b1222 0%, var(--color-surface) 100%);
-}
-
-.cv-panel::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 2px;
-  height: 100%;
-  background: linear-gradient(180deg, transparent, var(--color-violet) 30%, var(--color-amber) 70%, transparent);
-  opacity: 0.5;
-}
-
-.cv-panel__head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 2.2rem 2.4rem 1.4rem;
-  border-bottom: 1px solid var(--color-panel-line);
-}
-
-.cv-panel__eyebrow {
-  font-family: var(--font-tech);
-  font-size: 0.56rem;
-  text-transform: uppercase;
-  letter-spacing: 0.18em;
-  color: var(--color-violet);
-  margin: 0 0 0.7rem;
-}
-
-.cv-panel__name {
-  font-family: var(--font-display);
-  font-size: clamp(1.5rem, 1rem + 1.7vw, 2.2rem);
-  font-weight: var(--w-xbold);
-  letter-spacing: -0.04em;
-  line-height: 1;
-  margin: 0 0 0.4rem;
-  background: linear-gradient(180deg, #fff, #b9c4d8);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
-.cv-panel__headline {
-  margin: 0;
-  font-size: 0.82rem;
-  color: var(--color-slate);
-  letter-spacing: 0.01em;
-}
-
-.cv-close {
-  flex-shrink: 0;
-  width: 2.1rem;
-  height: 2.1rem;
-  border: 1px solid var(--color-panel-line);
-  background: none;
-  color: var(--color-slate);
-  cursor: pointer;
-  font-size: 0.9rem;
-  transition: color 0.18s ease, border-color 0.18s ease, background 0.18s ease;
-}
-
-.cv-close:hover,
-.cv-close:focus-visible {
-  color: var(--color-starlight);
-  border-color: var(--color-violet);
-  background: rgba(139, 124, 255, 0.08);
-}
-
-/* In-panel section tabs */
-.cv-tabs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.3rem;
-  padding: 1rem 2.4rem;
-  border-bottom: 1px solid var(--color-panel-line);
-}
-
-.cv-tab {
-  font-family: var(--font-tech);
-  font-size: 0.6rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--color-slate-dim);
-  background: none;
-  border: 1px solid transparent;
-  padding: 0.32rem 0.6rem;
-  cursor: pointer;
-  transition: color 0.18s ease, border-color 0.18s ease, background 0.18s ease;
-}
-
-.cv-tab:hover,
-.cv-tab:focus-visible {
-  color: var(--color-starlight);
-}
-
-.cv-tab.is-active {
-  color: var(--color-void);
-  background: var(--color-violet);
-  border-color: var(--color-violet);
-}
-
-.cv-scroll {
-  flex: 1;
-  overflow-y: auto;
-  padding: 1.6rem 2.4rem 2rem;
-  scrollbar-width: thin;
-  scrollbar-color: var(--color-panel-line) transparent;
-}
-
-.cv-section {
-  padding: 1rem 0 1.8rem;
-  border-bottom: 1px solid rgba(35, 44, 71, 0.5);
-  scroll-margin-top: 0.5rem;
-}
-
-.cv-section:last-of-type { border-bottom: 0; }
-
-.cv-section__head {
-  display: flex;
-  align-items: baseline;
-  gap: 0.7rem;
-  margin-bottom: 1.1rem;
-}
-
-.cv-section__code {
-  font-family: var(--font-tech);
-  font-size: 0.62rem;
-  color: var(--color-violet);
-  letter-spacing: 0.08em;
-}
-
-.cv-section__head h3 {
-  font-family: var(--font-display);
-  font-size: clamp(1.05rem, 0.85rem + 0.8vw, 1.32rem);
-  font-weight: var(--w-bold);
-  letter-spacing: -0.03em;
-  margin: 0;
-  color: var(--color-starlight);
-}
-
-/* --------------------------------------------------------------------------
-   LONG-FORM READING SETTINGS.
-   Every block of continuous prose in the app routes through these values. The
-   three that actually decide whether a paragraph is readable on a dark
-   background: a capped measure (over ~70 characters the eye loses the line
-   return), generous leading, and a LIGHTER weight — light text on dark reads
-   optically bolder than the same weight dark-on-light, so 300 here matches the
-   colour of 400 on paper.
-   -------------------------------------------------------------------------- */
-.cv-prose,
-.mission-panel__summary,
-.mission-panel__section p,
-.cv-system__blurb,
-.cv-entry__points li,
-.cv-award__detail {
-  max-width: var(--measure);
-  line-height: var(--leading-copy);
-  font-weight: var(--w-reg);
-  letter-spacing: 0.004em;
-  text-wrap: pretty; /* avoids orphans; ignored where unsupported */
-}
-
-.cv-prose {
-  margin: 0;
-  font-size: 1rem;
-  color: #d4dae5;
-}
-
-/* Timeline / experience + academics */
-.cv-entry { margin-bottom: 1.4rem; }
-.cv-entry:last-child { margin-bottom: 0; }
-
-.cv-entry__row {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 1rem;
-}
-
-.cv-entry__row h4 {
-  font-family: var(--font-body);
-  font-size: 0.98rem;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  margin: 0;
-  color: var(--color-starlight);
-}
-
-.cv-entry__period {
-  flex-shrink: 0;
-  font-family: var(--font-tech);
-  font-size: 0.6rem;
-  letter-spacing: 0.04em;
-  color: var(--color-slate-dim);
-  text-transform: uppercase;
-}
-
-.cv-entry__org {
-  margin: 0.15rem 0 0.6rem;
-  font-size: 0.85rem;
-  color: var(--color-violet);
-}
-
-.cv-entry__points {
-  margin: 0;
-  padding-left: 1.1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-.cv-entry__points li {
-  font-size: 0.9rem;
-  color: #c6cdda;
-}
-
-/* Flagship systems */
-.cv-system {
-  padding: 1.1rem 0;
-  border-top: 1px solid rgba(35, 44, 71, 0.5);
-}
-.cv-system:first-child { border-top: 0; padding-top: 0; }
-
-.cv-system__blurb {
-  margin: 0.45rem 0 0.7rem;
-  font-size: 0.9rem;
-  color: #c6cdda;
-}
-
-.cv-system__badge {
-  margin: 0 0 0.7rem;
-  display: inline-block;
-  font-family: var(--font-tech);
-  font-size: 0.6rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--color-amber);
-  border: 1px solid rgba(217, 142, 74, 0.4);
-  padding: 0.2rem 0.5rem;
-}
-
-.cv-chips {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-}
-
-.cv-chip {
-  font-family: var(--font-tech);
-  font-size: 0.64rem;
-  letter-spacing: 0.02em;
-  padding: 0.24rem 0.5rem;
-  border: 1px solid var(--color-panel-line);
-  color: #cfd5e0;
-  background: rgba(255, 255, 255, 0.02);
-}
-
-.cv-orbit-link {
-  margin-top: 0.9rem;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-family: var(--font-mono);
-  font-weight: 700;
-  font-size: 0.64rem;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--color-violet);
-  background: none;
-  border: 1px solid rgba(139, 124, 255, 0.4);
-  padding: 0.4rem 0.75rem;
-  cursor: pointer;
-  transition: background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
-}
-
-.cv-orbit-link:hover,
-.cv-orbit-link:focus-visible {
-  background: var(--color-violet);
-  color: var(--color-void);
-  box-shadow: 0 0 22px -6px var(--color-violet);
-}
-
-/* Technical stack */
-.cv-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 1.1rem;
-}
-
-.cv-stack__label {
-  font-family: var(--font-tech);
-  font-size: 0.6rem;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--color-slate-dim);
-  margin: 0 0 0.5rem;
-}
-
-/* Recognition */
-.cv-awards {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.cv-award {
-  padding-left: 0.9rem;
-  border-left: 2px solid var(--color-amber);
-}
-
-.cv-award__title {
-  margin: 0 0 0.25rem;
-  font-family: var(--font-body);
-  font-weight: 600;
-  font-size: 0.92rem;
-  color: var(--color-starlight);
-}
-
-.cv-award__detail {
-  margin: 0;
-  font-size: 0.86rem;
-  color: var(--color-slate);
-}
-
-/* Footer */
-.cv-panel__foot {
-  margin-top: 1.4rem;
-  padding-top: 1.3rem;
-  border-top: 1px solid var(--color-panel-line);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.cv-panel__links {
-  display: flex;
-  gap: 1.1rem;
-}
-
-.cv-panel__links a {
-  color: var(--color-slate);
-  text-decoration: none;
-  font-size: 0.8rem;
-  border-bottom: 1px solid transparent;
-  padding-bottom: 2px;
-  transition: color 0.18s ease, border-color 0.18s ease;
-}
-
-.cv-panel__links a:hover,
-.cv-panel__links a:focus-visible {
-  color: var(--color-amber);
-  border-bottom-color: var(--color-amber);
-}
-
-.cv-panel__langs {
-  margin: 0;
-  font-family: var(--font-tech);
-  font-size: 0.62rem;
-  letter-spacing: 0.04em;
-  color: var(--color-slate-dim);
-}
+/* The CV lives in its own stylesheet now — see dossier-cv.css. It stopped
+   being a drawer over the scene and became a full-screen destination, so none
+   of its layout belongs in the HUD's stylesheet any more. */
 
 /* ==========================================================================
    RESPONSIVE
@@ -1125,31 +758,20 @@ body.is-system {
    ========================================================================== */
 
 /* --- Long text should never force a horizontal scroll ---------------------- */
-.cv-prose,
 .mission-panel__summary,
 .mission-panel__section p,
-.cv-system__blurb,
-.cv-entry__points li,
-.cv-award__detail,
-.cv-entry__row h4,
-.mission-panel__title,
-.cv-panel__name {
+.mission-panel__title {
   overflow-wrap: anywhere;
 }
 
 /* --- Laptops / small desktops --------------------------------------------- */
 @media (max-width: 1200px) {
   .mission-panel { width: min(30rem, 46vw); }
-  .cv-panel { width: min(36rem, 58vw); }
 }
 
 /* --- Tablet: panels take more width, still side-anchored ------------------ */
 @media (max-width: 1024px) {
   .mission-panel { width: min(28rem, 54vw); padding: 2rem 1.8rem 1.2rem; }
-  .cv-panel { width: min(34rem, 68vw); }
-  .cv-panel__head,
-  .cv-tabs,
-  .cv-scroll { padding-left: 1.8rem; padding-right: 1.8rem; }
   .hud--hint { max-width: 12rem; font-size: 0.6rem; }
 }
 
@@ -1173,105 +795,31 @@ body.is-system {
     background: linear-gradient(90deg, transparent, var(--accent) 30%, var(--accent) 70%, transparent);
   }
 
-  .cv-panel {
-    top: auto;
-    bottom: 0;
-    width: 100%;
-    height: min(88dvh, 52rem);
-    border-right: 0;
-    border-top: 1px solid var(--color-panel-line);
-  }
-  .cv-panel::after {
-    width: 100%;
-    height: 2px;
-    top: 0;
-    background: linear-gradient(90deg, transparent, var(--color-violet) 30%, var(--color-amber) 70%, transparent);
-  }
-  .cv-panel__head { padding: 1.5rem 1.25rem 1.1rem; }
-  .cv-tabs { padding: 0.85rem 1.25rem; }
-  .cv-scroll { padding: 1.2rem 1.25rem calc(1.5rem + var(--safe-b, 0px)); }
 
   /* Tabs scroll horizontally rather than wrapping into a tall block that eats
      the sheet before any content is visible. */
-  .cv-tabs {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
-  }
-  .cv-tabs::-webkit-scrollbar { display: none; }
   .cv-tab { flex: 0 0 auto; }
 
-  /* The CV menu becomes a horizontal strip across the bottom; contacts move to
-     the top-right, where the hint used to be. Six stacked items plus a contact
-     row simply does not fit beside a phone-sized scene. */
-  .cv-nav {
-    left: 0;
-    right: 0;
-    bottom: 0;
-    max-width: none;
-    min-width: 0;
-    padding: 0.6rem var(--gutter) calc(0.6rem + var(--safe-b, 0px));
-    background: linear-gradient(180deg, transparent, rgba(1, 2, 6, 0.85) 45%);
-    /* The strip spans the full width, so leaving it interactive would swallow
-       every drag along the bottom of the screen and make the scene feel stuck.
-       Only the buttons themselves take input. */
+  /* CONTACTS STAY AT THE BOTTOM RIGHT.
+     They used to be moved up to the top-right corner here, because the section
+     index owned the bottom of the screen. That index is gone, and the move was
+     actively harmful: the sound toggle is position:fixed in that exact corner
+     at z-index 70, so the contact row was being drawn UNDERNEATH it — on a
+     tablet only one of the three icons was reachable, the other two sat behind
+     an opaque button. Measured at 820px wide: contacts 689-802, toggle 699-803.
+     The bottom corner is free now, so they simply stay there. */
+  .hud--contact { gap: 0.15rem; }
+
+  /* Except when a project sheet is up: at this width the sheet covers the
+     bottom of the screen, so the row would be buried under it. It fades rather
+     than vanishing, and stops taking touches while it is out of sight. */
+  .hud--contact.is-tucked {
+    opacity: 0;
     pointer-events: none;
   }
-  .cv-nav__item { pointer-events: auto; }
-  .cv-nav__caption { display: none; }
-  .cv-nav ul {
-    flex-direction: row;
-    gap: 0.4rem;
-    overflow-x: auto;
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
-    padding-bottom: 2px;
-    /* Fade the trailing edge so the row visibly CONTINUES rather than simply
-       ending mid-word. Six sections never fit a phone's width, the scrollbar is
-       hidden, and a strip cut off at the screen edge reads as broken layout
-       rather than as something scrollable — which risks a recruiter never
-       discovering three of the six sections.
-       The mask travels with the scroll, so it disappears at the end. */
-    -webkit-mask-image: linear-gradient(90deg, #000 82%, transparent 100%);
-    mask-image: linear-gradient(90deg, #000 82%, transparent 100%);
-  }
-  .cv-nav ul::-webkit-scrollbar { display: none; }
-  .cv-nav li { flex: 0 0 auto; }
-  .cv-nav__item {
-    border-left: 0;
-    border-bottom: 2px solid transparent;
-    /* 44px minimum touch target. */
-    min-height: 44px;
-    padding: 0.5rem 0.75rem;
-    white-space: nowrap;
-    background: rgba(8, 12, 22, 0.6);
-    border-radius: 4px;
-  }
-  .cv-nav__item:hover,
-  .cv-nav__item:focus-visible,
-  .cv-nav__item.is-active {
-    padding-left: 0.75rem;
-    border-left: 0;
-    border-bottom-color: var(--color-violet);
-    background: rgba(139, 124, 255, 0.12);
-  }
-  .cv-nav__arrow { display: none; }
-  .cv-nav__code { display: none; }
-
-  .hud--contact {
-    bottom: auto;
-    top: calc(var(--gutter) + var(--safe-t, 0px));
-    right: calc(var(--gutter) + var(--safe-r, 0px));
-    gap: 0.15rem;
-  }
-  /* Touch targets, and the handle stays collapsed — there is no hover on a
-     phone, so an unfurling label would either never show or always show. */
-  .contact-link { min-width: 44px; min-height: 44px; justify-content: center; }
-  .contact-link__reveal { display: none; }
 
   .hud--hint { display: none; }
-  .hud--identity { max-width: min(20rem, 58vw); }
+  .hud--identity { max-width: min(22rem, 66vw); }
 
   /* Floating 3D labels: tighten so they don't crowd a small frame. */
   .body-label { padding: 0.22rem 0.5rem; gap: 0.05rem; }
@@ -1284,25 +832,34 @@ body.is-system {
   .mission-panel { height: min(80dvh, 36rem); }
   .readout__cell { flex: 1 1 6rem; padding: 0.75rem 0.8rem; }
   .readout__value { font-size: 1.25rem; }
-  .cv-entry__row { flex-direction: column; gap: 0.1rem; }
-  .cv-entry__period { order: -1; }
   .mission-panel__links { flex-wrap: wrap; }
   .link-button { flex: 1 1 auto; justify-content: center; min-height: 44px; }
   .ghost-button { min-height: 44px; }
-  .identity__role { font-size: 0.58rem; }
+  /* THE CREW PLATE, TIGHTENED.
+     At 390px the block was 177px tall — a fifth of the screen — because the
+     name broke over two lines, the four disciplines over three, and the
+     location over three more. Everything here buys horizontal room back so
+     those lines stop wrapping: a smaller (but still 51px, comfortably past the
+     44px target minimum) emblem, a narrower gutter beside it, and one step down
+     in the two supporting sizes. The name is untouched: it is the point. */
+  .mark { gap: 0.6rem; }
+  .mark__emblem { width: 3.2rem; height: 3.2rem; }
+  .mark__role { font-size: 0.68rem; letter-spacing: 0.03em; }
+  .mark__dot { margin: 0 0.32rem; }
+  .mark__place { font-size: 0.63rem; letter-spacing: 0.035em; }
+  .mark__rule { left: 3.8rem; right: -1.5rem; }
+
+  .identity__role { font-size: 0.8rem; }
+  .identity__disciplines { font-size: 0.72rem; }
   .identity__location { font-size: 0.58rem; }
 }
 
 /* --- Very small phones ---------------------------------------------------- */
 @media (max-width: 400px) {
-  /* Identity (top-left) and contacts (top-right) share this row, so the
-     identity has to yield enough width for three 40px targets plus gutters. */
-  .hud--identity { max-width: 50vw; padding-left: 0.6rem; }
-  .contact-link { min-width: 40px; min-height: 40px; padding: 0.35rem; }
-  .cv-nav__item { font-size: 0.85rem; padding: 0.5rem 0.6rem; }
-  .cv-panel__head { padding: 1.2rem 1rem 0.9rem; }
-  .cv-tabs { padding: 0.7rem 1rem; }
-  .cv-scroll { padding: 1rem 1rem calc(1.2rem + var(--safe-b, 0px)); }
+  /* The identity now shares the top row with the sound toggle alone — the
+     contacts went back to the bottom corner — so it only has to clear one 34px
+     button, not three plus gutters. That is where the extra width comes from. */
+  .hud--identity { max-width: 68vw; padding-left: 0.6rem; }
   .mission-panel { padding: 1.2rem 1rem calc(1rem + var(--safe-b, 0px)); }
 }
 
@@ -1310,18 +867,9 @@ body.is-system {
 @media (max-height: 560px) and (orientation: landscape) {
   /* Vertical room is the scarce resource here: sheets go side-anchored again
      so they don't cover the entire screen, and the bottom strip is dropped. */
-  .cv-nav { display: none; }
   .mission-panel,
-  .cv-panel {
-    top: 0;
-    bottom: auto;
-    height: 100dvh;
-    border-top: 0;
-  }
   .mission-panel { width: min(26rem, 55vw); left: auto; right: 0; }
-  .cv-panel { width: min(30rem, 65vw); right: auto; left: 0; }
   .mission-panel::before { width: 2px; height: 100%; background: linear-gradient(180deg, transparent, var(--accent) 30%, var(--accent) 70%, transparent); }
-  .cv-panel::after { width: 2px; height: 100%; }
 }
 
 /* --- Large displays ------------------------------------------------------- */
@@ -1329,5 +877,134 @@ body.is-system {
   /* Cap the panels so they don't sprawl on an ultrawide, and let the reading
      measure breathe slightly. */
   .mission-panel { width: min(38rem, 30vw); }
-  .cv-panel { width: min(46rem, 38vw); }
+}
+
+/* --- Sound toggle ----------------------------------------------------------
+   Top-right, above every panel, present in every view. z-index 70 puts it over
+   the CV (41) and the walkthrough (50) but under the reticle cursor, which must
+   stay the topmost thing on screen. */
+.sound-toggle {
+  position: fixed;
+  top: calc(var(--gutter) + var(--safe-t, 0px));
+  right: calc(var(--gutter) + var(--safe-r, 0px));
+  z-index: 70;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.42rem 0.7rem;
+  border: 1px solid var(--color-panel-line);
+  border-radius: var(--panel-radius);
+  background: rgba(5, 7, 13, 0.72);
+  color: var(--color-slate);
+  font-family: var(--font-tech);
+  font-weight: var(--w-semi);
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  transition: color 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+}
+
+.sound-toggle:hover,
+.sound-toggle:focus-visible {
+  color: var(--color-starlight);
+  border-color: var(--color-violet);
+  background: rgba(139, 124, 255, 0.12);
+}
+
+/* Muted is a STATE, not a disabled control: it stays fully legible, and only
+   the colour drops, so nobody has to wonder whether the button still works. */
+.sound-toggle.is-muted {
+  color: var(--color-slate-dim);
+}
+
+.sound-toggle svg {
+  flex-shrink: 0;
+}
+
+/* On a phone the label goes and the icon stays — the control is then a 34px
+   target in the corner, which is the smallest thing that is still hittable. */
+@media (max-width: 640px) {
+  /* Icon only, so the reserved corner shrinks with it. */
+  :root { --toprail: 4rem; }
+
+  .sound-toggle__label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .sound-toggle {
+    padding: 0.5rem;
+  }
+  .hud--hint {
+    top: calc(var(--gutter) + var(--safe-t, 0px) + 2.6rem);
+  }
+}
+
+
+/* --- Skip link -------------------------------------------------------------
+   The route into the CV for anyone not using a pointer. It occupies no space
+   and paints nothing until it receives keyboard focus, at which point it
+   becomes an ordinary, obvious button in the top-left. */
+.skip-to-cv {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 95;
+  transform: translateY(-120%);
+  padding: 0.7rem 1.1rem;
+  border: 1px solid var(--color-violet);
+  border-radius: 0 0 var(--panel-radius) 0;
+  background: var(--color-void);
+  color: var(--color-starlight);
+  font-family: var(--font-tech);
+  font-size: 0.75rem;
+  font-weight: var(--w-semi);
+  letter-spacing: 0.08em;
+  transition: transform 0.18s var(--ease-out);
+}
+
+.skip-to-cv:focus-visible {
+  transform: translateY(0);
+}
+
+/* --- The emblem, as a control ----------------------------------------------
+   It turns once on its axis and the bodies on its rings swing with it. The
+   whole mark scales up a touch on the way round, so the turn reads as a
+   deliberate flourish rather than as a spinning loader. */
+.mark__emblem-btn {
+  display: block;
+  padding: 0;
+  border: 0;
+  background: none;
+  line-height: 0;
+  border-radius: 50%;
+  transition: filter 0.25s var(--ease-out), transform 0.25s var(--ease-out);
+}
+
+.mark__emblem-btn:hover,
+.mark__emblem-btn:focus-visible {
+  filter: brightness(1.25);
+  transform: scale(1.06);
+}
+
+.mark__emblem-btn:focus-visible {
+  outline: 1px solid var(--color-violet);
+  outline-offset: 3px;
+}
+
+.mark__emblem-btn.is-spinning {
+  animation: emblem-turn 1.05s cubic-bezier(0.42, 0, 0.18, 1) both;
+}
+
+@keyframes emblem-turn {
+  0%   { transform: rotate(0deg) scale(1); }
+  45%  { transform: rotate(190deg) scale(1.14); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mark__emblem-btn.is-spinning { animation: none; }
 }

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useNavigationStore } from '../state/navigationStore'
-import { getMediaForProject } from '../data/rahaMedia'
+import { getMediaForProject } from '../data/projectMedia'
 import { getProjectById } from '../data/projects'
 import { useReducedMotion } from '../scene/useReducedMotion'
 

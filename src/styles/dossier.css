@@ -165,7 +165,9 @@
   border-radius: var(--panel-radius);
   background: none;
   color: var(--accent);
-  font-family: var(--font-mono);
+  /* Chrome, not a readout — the UI sans. See tokens.css: the mono role is
+     reserved for values that align in columns. */
+  font-family: var(--font-tech);
   font-weight: 700;
   font-size: 0.68rem;
   text-transform: uppercase;
@@ -251,6 +253,10 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
+  /* Leaves the top-right corner to the sound toggle, which is fixed above every
+     overlay. Without this the toggle sat directly on top of "Close", and the
+     only way out of the walkthrough was the Escape key. */
+  padding-right: var(--toprail);
 }
 
 .dossier__eyebrow {
@@ -631,5 +637,85 @@
      thumbnail-of-a-thumbnail size. */
   .mission-media__teaser {
     grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ===========================================================================
+   THE CERTIFICATE, in the Experience panel.
+   ---------------------------------------------------------------------------
+   Clicking it turns it once, all the way round. The rotation is a real 3D
+   transform: the stage carries the perspective, the card carries the rotation,
+   and `backface-visibility` is left VISIBLE on purpose so the back of the
+   document sweeps past mid-turn. Hiding it would make the card vanish for half
+   the animation, which reads as a bug rather than as a flourish.
+   =========================================================================== */
+
+.cert {
+  margin: 0 0 1.8rem;
+}
+
+/* The perspective lives on the parent. Put it on the rotating element itself
+   and the vanishing point rotates with the card, which flattens the whole
+   effect into a horizontal squash. */
+.cert__stage {
+  perspective: 1400px;
+  perspective-origin: 50% 45%;
+}
+
+.cert__card {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 1px solid var(--color-panel-line);
+  border-radius: var(--panel-radius);
+  background: var(--color-void);
+  overflow: hidden;
+  cursor: pointer;
+  transform-style: preserve-3d;
+  transition: border-color 0.22s var(--ease-out), box-shadow 0.22s var(--ease-out);
+}
+
+.cert__card img {
+  display: block;
+  width: 100%;
+  height: auto;
+  /* The document is a white page in a black room. Held back a little at rest so
+     it sits in the panel rather than glaring out of it, and brought up on
+     hover — the image itself is the hover feedback. */
+  opacity: 0.88;
+  transition: opacity 0.22s var(--ease-out);
+}
+
+.cert__card:hover,
+.cert__card:focus-visible {
+  border-color: var(--accent, var(--color-violet));
+  box-shadow: 0 0 34px -12px var(--accent, var(--color-violet));
+}
+
+.cert__card:hover img,
+.cert__card:focus-visible img {
+  opacity: 1;
+}
+
+.cert__card.is-spinning {
+  animation: cert-turn 0.9s cubic-bezier(0.45, 0.05, 0.2, 1) both;
+}
+
+@keyframes cert-turn {
+  from { transform: rotateY(0deg); }
+  to   { transform: rotateY(360deg); }
+}
+
+.cert__meta {
+  margin: 0.6rem 0 0;
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+  color: var(--color-slate-dim);
+}
+
+/* Reduced motion gets the sound and the document, without the turn. */
+@media (prefers-reduced-motion: reduce) {
+  .cert__card.is-spinning {
+    animation: none;
   }
 }

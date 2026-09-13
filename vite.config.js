@@ -22,29 +22,40 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: false,
-    chunkSizeWarningLimit: 900,
+    // The 3D engine (three + @react-three + postprocessing) is one large chunk
+    // and it is needed on first paint — the system IS the landing — so the
+    // limit is raised past it rather than warning on every build.
+    chunkSizeWarningLimit: 1100,
+
     rollupOptions: {
       output: {
-        // Split the vendor weight off the app code. `three` alone is the bulk of
-        // this bundle; keeping it in its own chunk means the browser can parse
-        // and cache it independently, and a copy edit to the CV data no longer
-        // invalidates a megabyte of engine code in every returning visitor's
-        // cache. Postprocessing is separated for the same reason.
-        // Rolldown (Vite 8) requires the function form — the object map that
-        // Rollup accepted throws "manualChunks is not a function" here.
-        manualChunks(id) {
-          if (!id.includes('node_modules')) return
-          const path = id.replace(/\\/g, '/')
-          // Order matters: '@react-three/postprocessing' contains both
-          // '@react-three' and 'postprocessing', and every '@react-three/*'
-          // package contains the substring 'three'. Most specific first.
-          // three core first: its path is `node_modules/three/...` which
-          // contains '/three/', while '@react-three/...' contains '-three/'
-          // and so cannot collide.
-          if (path.includes('/three/')) return 'three'
-          if (path.includes('@react-three')) return 'r3f'
-          if (path.includes('postprocessing')) return 'postprocessing'
-          if (path.includes('/gsap/')) return 'motion'
+        // Vendor splitting, via Rolldown's advancedChunks rather than the
+        // classic `manualChunks` callback. The point is caching: a copy edit to
+        // the CV data must not invalidate a megabyte of engine code in every
+        // returning visitor's cache.
+        //
+        // WHY NOT manualChunks
+        // It silently did not work under Rolldown. Returning 'react' from it
+        // produced no such chunk — React was merged into the r3f group — and
+        // unmatched packages (zustand) were swept in with it. advancedChunks is
+        // Rolldown's own API and groups deterministically by regex, in order.
+        //
+        // ORDER MATTERS. '@react-three/postprocessing' contains both
+        // '@react-three' and 'postprocessing', and every '@react-three/*' path
+        // contains the substring 'three'. Anchoring each test on the package
+        // directory boundary removes the ambiguity entirely.
+        advancedChunks: {
+          groups: [
+            { name: 'react', test: /node_modules[\\/](react|react-dom|scheduler|use-sync-external-store)[\\/]/ },
+            { name: 'state', test: /node_modules[\\/]zustand[\\/]/ },
+            { name: 'motion', test: /node_modules[\\/]gsap[\\/]/ },
+            { name: 'r3f', test: /node_modules[\\/]@react-three[\\/]/ },
+            { name: 'postprocessing', test: /node_modules[\\/](postprocessing|@monogrid)[\\/]/ },
+            { name: 'three', test: /node_modules[\\/]three(-stdlib)?[\\/]/ },
+            // Catch-all, last, so no future ungrouped package lands somewhere
+            // arbitrary and silently changes what the entry chunk depends on.
+            { name: 'vendor', test: /node_modules/ },
+          ],
         },
       },
     },

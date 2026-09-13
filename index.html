@@ -17,12 +17,35 @@
     />
     <title>Sarah Altheeb · Applied AI Engineer</title>
 
-    <!-- Sora — variable, 100–800, used globally. A single variable axis means
-         one file covers every weight in the hierarchy. -->
+    <!-- TYPE — three faces, each with exactly one job.
+
+         Oxanium (SIL OFL, variable 200-800) is the interface: the name, every
+         label, every button. Outfit (variable 100-900) is the reading face for
+         prose in the CV and the project panels — a squared-off face is right
+         for a label and wrong for six lines of a case study. Geist Mono is the
+         instrument register only (.mono): mission codes, coordinates and metric
+         readouts that have to align in columns.
+
+         SUBSTITUTION NOTE — "Rexlia" was requested for the interface. Its free
+         download is a Typodermic DESKTOP licence, and their own guide places
+         "any use that serves or embeds the font in a website" outside it, so it
+         cannot ship here. Oxanium stands in: the same squared-off, technical
+         geometry, and it goes thin enough to keep the interface light rather
+         than heavy. To switch to Rexlia once a webfont licence is bought,
+         self-host its woff2 and change the stacks at the top of tokens.css —
+         nothing else in the codebase names a typeface.
+
+         The 3D title is NOT a webfont. It is Rukyltronic, rasterised to flat
+         artwork on a developer machine by scripts/build-title.mjs; the licence
+         covers that and would not cover serving the font. Nothing about the
+         title is downloaded as type, which is also why the serif this file used
+         to request is gone: it was the old title's source face and had no other
+         user, so it was a font download every visitor paid for and none of them
+         ever saw. -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Sora:wght@100..800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Oxanium:wght@200..800&family=Outfit:wght@100..900&family=Geist+Mono:wght@100..900&display=swap"
       rel="stylesheet"
     />
   </head>

@@ -2,50 +2,29 @@ import { create } from 'zustand'
 
 // Two levels of state, deliberately separate.
 //
-// stage: 'system'    -> the landing view. Free-look orbital system, page scroll
-//                       locked. Everything is reachable from here.
-//        'diving'    -> the camera is falling into the star. ~1.4s, on rails.
-//        'prologue'  -> inside the star: the story, in its own dark space. The
-//                       page scrolls and the prologue owns the camera.
-//        'returning' -> the wormhole burst carrying the visitor back out. ~1s.
-//        'emerging'  -> rising out of the star: the camera starts at the
-//                       photosphere and pulls back to the system framing, so
-//                       the return is a reveal rather than a cut. ~1.9s.
-//
-// The two transitional stages exist so that entering and leaving the story are
-// authored moments rather than cuts. They are the only states in the app where
-// neither the visitor nor the scroll position controls the camera.
+// stage: 'system'   -> the landing view. Free-look orbital system, page scroll
+//                      locked. Everything is reachable from here.
+//        'diving'   -> the warp: the camera falls into the star while streaks
+//                      rush past and the screen blooms white. ~1.4s, on rails.
+//        'cv'       -> through the star: the full CV is open and the camera is
+//                      parked at the photosphere behind it.
+//        'emerging' -> "Back to orbit" from the warp: the camera pulls back out
+//                      of the star to the system framing, so the return is a
+//                      reveal rather than a cut. ~1.9s.
 //
 // view:  'overview'      -> free-look orbital system, nothing focused
 //        'transitioning' -> camera is mid-flight (controls disabled)
-//        'focus'          -> parked at a body, mission panel open
+//        'focus'         -> parked at a body, mission panel open
 //
-// `view` is meaningless while stage is 'prologue'. Keeping them separate means
-// the entire existing focus/flight system needed no changes to accommodate the
-// approach sequence — the prologue simply holds the camera before any of it
-// starts.
+// `view` only means anything while stage is 'system'. Keeping the two separate
+// is what let the warp be added without touching the focus/flight system at all:
+// the warp simply holds the camera before any of it runs.
 export const useNavigationStore = create((set, get) => ({
-  // The SYSTEM is the landing view, not the approach sequence.
-  //
-  // This is deliberate and it is the most important UX decision in the file. A
-  // narrative intro that plays before anything else is a toll gate: a recruiter
-  // with sixty seconds pays it before seeing a single project. Landing in the
-  // system means the work is immediately available, and the story becomes an
-  // invitation — offered by the star, taken only by someone who wants it.
   stage: 'system',
 
-  // Whether the approach has been run to completion (or skipped) at least once.
-  // Controls whether the star still advertises itself with "Start here".
-  hasSeenApproach: false,
-
-  // Pointer is over the photosphere. After the first run the star carries no
-  // permanent label — the invitation surfaces only on hover, so the body stays
-  // a star rather than a button with a star behind it.
+  // Pointer is over the star or its title. Both are the same door, so hovering
+  // either lights the title up.
   sunHovered: false,
-
-  // Set once the visitor has seen the "select a body" cue, so the onboarding
-  // never nags on a second visit to the overview.
-  onboarded: false,
 
   view: 'overview',
   activeId: null,
@@ -59,70 +38,116 @@ export const useNavigationStore = create((set, get) => ({
   // Product walkthrough overlay. `dossierIndex` is a position in the project's
   // flattened media reel, so opening from a specific thumbnail and opening from
   // the panel's main button are the same action with a different starting
-  // frame. Null index means "open at the beginning".
+  // frame.
   dossierOpen: false,
   dossierIndex: 0,
 
-  setHovered: (id) => set({ hoveredId: id }),
+  // --- Sound ----------------------------------------------------------------
+  // Off is remembered across visits. Defaulting to ON is defensible only because
+  // nothing here plays unprompted: every sound in the app is the direct answer
+  // to a click the visitor just made. Nothing makes noise on load.
+  muted: (() => {
+    try {
+      return localStorage.getItem('ganymede.muted') === '1'
+    } catch {
+      // Private mode, or site data blocked. Sound on, and no crash.
+      return false
+    }
+  })(),
 
-  // Arrival. Called both by scrolling to the end of the approach and by the
-  // skip control, so there is exactly one way into the system and one place
-  // where the resulting state is defined.
-  //
-  // `onboarded: false` is reset here on purpose: coming out of the wormhole is
-  // exactly when "each planet is a project" is worth saying, whether the
-  // visitor is arriving for the first time or replaying the story.
-  enterSystem: () =>
-    set({
-      stage: 'system',
-      view: 'overview',
-      activeId: null,
-      cvOpen: false,
-      hasSeenApproach: true,
-      onboarded: false,
+  toggleMute: () =>
+    set((s) => {
+      const muted = !s.muted
+      try {
+        localStorage.setItem('ganymede.muted', muted ? '1' : '0')
+      } catch {
+        // Nothing to do — the preference simply will not survive a reload.
+      }
+      return { muted }
     }),
 
-  dismissOnboarding: () => set({ onboarded: true }),
+  // The certificate on the Experience station. A counter rather than a
+  // boolean: every click is a distinct event, and both the spin animation and
+  // the sound key off the change, so they cannot fall out of step.
+  certificateSpin: 0,
+  spinCertificate: () => set((s) => ({ certificateSpin: s.certificateSpin + 1 })),
 
+  // Catching the rocket mid-flight. A counter for the same reason: every catch
+  // is its own event, and the sound is driven by the change rather than by the
+  // click handler, so it stays in the audio director with everything else.
+  rocketCatches: 0,
+  catchRocket: () => set((s) => ({ rocketCatches: s.rocketCatches + 1 })),
+
+  // The emblem beside the name. Same pattern again: a counter, so the sound
+  // lives with every other cue in the audio director rather than in a handler.
+  emblemSpins: 0,
+  spinEmblem: () => set((s) => ({ emblemSpins: s.emblemSpins + 1 })),
+
+  setHovered: (id) => set({ hoveredId: id }),
   setSunHovered: (v) => set({ sunHovered: v }),
 
-  // --- Entering the story ---------------------------------------------------
-  // Clicking the star begins the DIVE, not the prologue. Anything focused is
-  // released first, otherwise the camera would be fighting a focus tween the
+  // --- The warp -------------------------------------------------------------
+  // Clicking the star (or the title behind it) starts the DIVE. Anything open
+  // is released first, otherwise the camera would be fighting a focus tween the
   // moment the dive takes over.
-  // Takes NO arguments. It is wired straight to onClick in SunBeacon, and React
+  //
+  // Takes NO arguments. It is wired straight to onClick handlers, and React
   // passes the click event as the first argument — any parameter here would
   // silently receive a SyntheticEvent instead of what it expected.
-  startApproach: () => {
+  warpToCv: () => {
     if (get().stage !== 'system') return
     set({
       stage: 'diving',
       view: 'overview',
       activeId: null,
       cvOpen: false,
+      dossierOpen: false,
       sunHovered: false,
     })
   },
 
-  // Called by StarDive when the camera has reached the photosphere and the
-  // screen is fully white — the one frame where a teleport is invisible.
-  enterPrologue: () => set({ stage: 'prologue' }),
+  // Called by StarDive at the one frame where the screen is pure white. The CV
+  // opens under cover of that light, so it is simply there when it clears.
+  enterCv: () => set({ stage: 'cv', cvOpen: true, cvSection: null }),
 
-  // --- Leaving the story ----------------------------------------------------
-  // Reaching the end of the scroll starts the wormhole burst rather than
-  // cutting straight back. `enterSystem` is what actually lands.
-  beginReturn: () => {
-    if (get().stage !== 'prologue') return
-    set({ stage: 'returning' })
+  // --- Back to orbit --------------------------------------------------------
+  // One action for the CV's return control, whichever way the CV was opened.
+  //   From the warp: pull the camera back out of the star.
+  //   From the HUD:  close the CV and glide the camera back to the default
+  //                  framing, so "back to orbit" always lands in the same place
+  //                  however far the visitor had dragged the system around.
+  returnToOrbit: () => {
+    const { stage, view } = get()
+    if (stage === 'cv') {
+      set({ cvOpen: false, stage: 'emerging' })
+      return
+    }
+    if (stage !== 'system') return
+    set(
+      view === 'transitioning'
+        ? { cvOpen: false }
+        : { cvOpen: false, view: 'transitioning', activeId: null }
+    )
   },
 
-  // Called by StarDive once the burst has peaked and the camera has been
-  // repositioned at the photosphere. From here the camera pulls back out to the
-  // system, which is the half of the journey the visitor actually watches.
-  beginEmerge: () => set({ stage: 'emerging' }),
+  // Called by StarDive when the camera has finished rising out of the star.
+  // If the visitor left the CV by choosing a project ("View in orbit"), that
+  // body is still in `activeId`, and landing hands it straight to the camera
+  // rig for the flight.
+  landInSystem: () =>
+    set((s) => ({ stage: 'system', view: s.activeId ? 'transitioning' : 'overview' })),
 
   focusBody: (id) => {
-    if (get().view === 'transitioning') return
+    const { stage, view } = get()
+
+    // Chosen from inside the warp: rise out of the star first. landInSystem
+    // picks the body up from `activeId` once the camera is back in the system.
+    if (stage === 'cv') {
+      set({ activeId: id, cvOpen: false, stage: 'emerging' })
+      return
+    }
+    if (stage !== 'system' || view === 'transitioning') return
+
     // Opening a body from the CV closes the CV so the camera flight is unobscured.
     set({ view: 'transitioning', activeId: id, cvOpen: false })
   },
@@ -144,20 +169,19 @@ export const useNavigationStore = create((set, get) => ({
   closeDossier: () => set({ dossierOpen: false }),
 
   openCv: (section = null) => set({ cvOpen: true, cvSection: section }),
-
   setCvSection: (section) => set({ cvSection: section }),
-  closeCv: () => set({ cvOpen: false }),
+
+  // Escape and the backdrop. Inside the warp, closing the CV IS going back to
+  // orbit — otherwise the visitor would be left staring at the inside of a
+  // star with nothing on screen and no way out.
+  closeCv: () => {
+    if (get().stage === 'cv') {
+      get().returnToOrbit()
+      return
+    }
+    set({ cvOpen: false })
+  },
 }))
-
-// Is the nebula arrival cue on screen?
-//
-// Only after the approach has been run — arriving out of the wormhole is what
-// the cue is a response to. On a cold first load the star's own beacon is the
-// single call to action, and two competing invitations would be one too many.
-export const selectCueVisible = (s) =>
-  s.stage === 'system' && s.hasSeenApproach && !s.onboarded && s.view === 'overview'
-
-export const useCueVisible = () => useNavigationStore(selectCueVisible)
 
 // Whether a body's floating name label should render.
 //
@@ -166,15 +190,6 @@ export const useCueVisible = () => useNavigationStore(selectCueVisible)
 // matter what z-index that panel carries. Not rendering is the only reliable
 // fix, which makes this the single place that decides when they are allowed.
 //
-// Hidden during the approach (labels would float over the narrative text),
-// while the nebula cue is up (that cue names the bodies itself, and a label
-// landing on top of it was the reported overlap), during camera flights, and
-// behind either open panel.
+// Hidden during the warp, during camera flights, and behind an open CV.
 export const useLabelsVisible = () =>
-  useNavigationStore(
-    (s) =>
-      s.stage === 'system' &&
-      !selectCueVisible(s) &&
-      s.view === 'overview' &&
-      !s.cvOpen
-  )
+  useNavigationStore((s) => s.stage === 'system' && s.view === 'overview' && !s.cvOpen)

@@ -1,0 +1,877 @@
+/* ===========================================================================
+   THE DOSSIER — the CV as a full-screen destination.
+   ---------------------------------------------------------------------------
+   OPACITY CONTRACT, inherited from ui.css and non-negotiable: the reading
+   surface is opaque. No backdrop-filter, no alpha over the canvas. This is the
+   document a recruiter reads on a laptop in an airport, and a starfield showing
+   through a paragraph is where legibility goes to die.
+
+   The scene is not hidden, though — it is dimmed to a deep wash behind a solid
+   sheet, so arriving here through a star still feels like arriving somewhere.
+   =========================================================================== */
+
+.dsr {
+  position: fixed;
+  inset: 0;
+  /* Above the walkthrough (50), below the sound toggle (70) and the reticle. */
+  z-index: 55;
+}
+
+/* The opaque ground. Two very large, very soft pools of light — one violet at
+   the top-left, one amber at the bottom-right — over near-black. They are the
+   scene's own two accent colours, so the document feels lit by the system it
+   sits inside rather than pasted over it. */
+.dsr__veil {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(120% 80% at 12% -10%, rgba(139, 124, 255, 0.16) 0%, rgba(5, 7, 13, 0) 55%),
+    radial-gradient(100% 70% at 100% 110%, rgba(217, 142, 74, 0.13) 0%, rgba(5, 7, 13, 0) 60%),
+    #05070d;
+}
+
+.dsr__scroll {
+  position: relative;
+  height: 100%;
+  overflow-y: auto;
+  /* `clip`, not `hidden`: it cuts the axis without turning it into a scroll
+     container, so the rail's hover labels can overhang the first and last dots
+     without putting a horizontal scrollbar on the document. */
+  overflow-x: clip;
+  overscroll-behavior: contain;
+}
+
+.dsr__inner {
+  max-width: 84rem;
+  margin: 0 auto;
+  padding: clamp(2rem, 5vh, 4rem) clamp(1.25rem, 4vw, 3.5rem) 5rem;
+  padding-left: max(clamp(1.25rem, 4vw, 3.5rem), var(--safe-l, 0px));
+  padding-right: max(clamp(1.25rem, 4vw, 3.5rem), var(--safe-r, 0px));
+}
+
+/* --- Masthead ------------------------------------------------------------- */
+
+.dsr__masthead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 2rem clamp(1rem, 3vw, 3rem);
+  flex-wrap: wrap;
+  padding-bottom: 1.8rem;
+  border-bottom: 1px solid var(--color-panel-line);
+}
+
+.dsr__eyebrow {
+  margin: 0 0 0.85rem;
+  font-size: 0.58rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-violet);
+}
+
+.dsr__name {
+  margin: 0 0 0.55rem;
+  /* The interface face, one step above the surrounding text — the same
+     treatment as the name in the HUD, so the document and the system speak with
+     one voice. Tracked open a little: a squared-off face at this size needs the
+     air. */
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 1.1rem + 3.4vw, 3.9rem);
+  font-weight: var(--w-med);
+  letter-spacing: 0.01em;
+  line-height: 1.02;
+  background: var(--ink-starlight);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  opacity: 0.96;
+}
+
+.dsr__headline {
+  margin: 0 0 0.6rem;
+  max-width: 46ch;
+  font-size: clamp(0.9rem, 0.8rem + 0.3vw, 1.05rem);
+  font-weight: var(--w-reg);
+  line-height: 1.45;
+  color: var(--color-slate);
+}
+
+.dsr__meta {
+  margin: 0;
+  font-size: 0.62rem;
+  letter-spacing: 0.06em;
+  color: var(--color-slate-dim);
+}
+
+.dsr__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.9rem;
+  /* Clears the sound toggle — see --toprail in tokens.css, which is the one
+     place that knows how much room that corner needs. */
+  padding-top: 2.5rem;
+}
+
+/* --- Back to orbit -------------------------------------------------------- */
+
+.dsr-return {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.65rem 1.05rem;
+  border: 1px solid rgba(139, 124, 255, 0.55);
+  border-radius: var(--panel-radius);
+  background: rgba(139, 124, 255, 0.1);
+  color: var(--color-starlight);
+  font-family: var(--font-tech);
+  font-weight: var(--w-semi);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transition: color 0.2s ease, background 0.2s ease, border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.dsr-return svg {
+  color: var(--color-violet);
+  transition: transform 0.5s var(--ease-out), color 0.2s ease;
+}
+
+.dsr-return:hover,
+.dsr-return:focus-visible {
+  background: var(--color-violet);
+  border-color: var(--color-violet);
+  color: var(--color-void);
+  box-shadow: 0 0 30px -8px var(--color-violet);
+}
+
+.dsr-return:hover svg,
+.dsr-return:focus-visible svg {
+  color: currentColor;
+  transform: rotate(-35deg);
+}
+
+/* --- Headline numbers ----------------------------------------------------- */
+/* Before any prose. A technical reviewer scans for evidence first and reads
+   second, so the evidence is the first thing past the name. */
+
+.dsr__stats {
+  list-style: none;
+  margin: 2.2rem 0 3rem;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: 1px;
+  background: var(--color-panel-line);
+  border: 1px solid var(--color-panel-line);
+  border-radius: var(--panel-radius);
+  overflow: hidden;
+}
+
+.dsr__stats li {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 1.15rem 1.2rem;
+  background: #070a12;
+}
+
+/* A seam in the project's own colour, so a number is visibly attributable to
+   the system that produced it. */
+.dsr__stats li::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent, var(--color-violet)), transparent 85%);
+  opacity: 0.75;
+}
+
+.dsr__stat-value {
+  font-size: clamp(1.35rem, 1.1rem + 0.9vw, 1.9rem);
+  font-weight: var(--w-bold);
+  line-height: 1;
+  color: var(--color-starlight);
+}
+
+.dsr__stat-label {
+  font-size: 0.78rem;
+  color: var(--color-slate);
+}
+
+.dsr__stat-from {
+  font-size: 0.56rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-slate-dim);
+}
+
+/* --- Rail + content ------------------------------------------------------- */
+
+.dsr__body {
+  display: grid;
+  grid-template-columns: 1.4rem minmax(0, 1fr);
+  gap: clamp(1.4rem, 3vw, 2.6rem);
+  align-items: start;
+}
+
+.dsr__rail {
+  position: sticky;
+  top: 1.2rem;
+  /* Narrow on purpose. The rail is a position indicator first and a menu
+     second, so it takes the width of a line of dots, not the width of the
+     longest section title. */
+  padding-left: 0.15rem;
+}
+
+.dsr__rail ol {
+  position: relative;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+/* The trajectory: a hairline down the whole rail... */
+.dsr__rail ol::before,
+.dsr__rail ol::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 0.85rem;
+  bottom: 0.85rem;
+  width: 1px;
+}
+
+.dsr__rail ol::before {
+  background: var(--color-panel-line);
+}
+
+/* ...and the part of it already travelled. Scaled from the active index rather
+   than from a scroll listener: same information, no work on the scroll path. */
+.dsr__rail ol::after {
+  background: linear-gradient(180deg, var(--color-violet), rgba(139, 124, 255, 0.35));
+  transform-origin: top;
+  transform: scaleY(var(--progress, 0));
+  transition: transform 0.45s var(--ease-out);
+}
+
+.dsr__rail-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  width: 100%;
+  padding: 0.52rem 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  color: var(--color-slate-dim);
+}
+
+/* The body on the trajectory. */
+.dsr__rail-dot {
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+  width: 9px;
+  height: 9px;
+  margin-left: 0;
+  border-radius: 50%;
+  background: var(--color-void);
+  box-shadow: inset 0 0 0 1px var(--color-slate-dim);
+  transition: box-shadow 0.22s ease, background 0.22s ease, transform 0.22s var(--ease-out);
+}
+
+/* At rest no label is drawn at all. Position is carried by the lit dot and the
+   filled spine, and the reader always has the section heading in front of them
+   anyway — so a permanent row of titles was duplicating information at the cost
+   of a column. Names resolve only under the pointer or keyboard focus.
+   ABSOLUTE, so a nine-rem label never widens a one-rem rail; laying these out in
+   flow is what would put a horizontal scrollbar on the document. */
+.dsr__rail-text {
+  position: absolute;
+  left: 1.5rem;
+  top: 50%;
+  z-index: 3;
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 0.3rem 0.65rem;
+  border: 1px solid var(--color-panel-line);
+  border-radius: var(--panel-radius);
+  background: rgba(7, 10, 18, 0.95);
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(-50%) translateX(-5px);
+  transition: opacity 0.2s ease, transform 0.2s var(--ease-out);
+}
+
+.dsr__rail-code {
+  font-size: 0.58rem;
+  color: var(--color-violet);
+}
+
+.dsr__rail-label {
+  font-family: var(--font-tech);
+  font-size: 0.78rem;
+  font-weight: var(--w-med);
+  color: var(--color-starlight);
+}
+
+.dsr__rail-item:hover .dsr__rail-text,
+.dsr__rail-item:focus-visible .dsr__rail-text {
+  opacity: 1;
+  transform: translateY(-50%);
+}
+
+.dsr__rail-item:hover .dsr__rail-dot,
+.dsr__rail-item:focus-visible .dsr__rail-dot {
+  box-shadow: inset 0 0 0 1px var(--color-starlight);
+  transform: scale(1.15);
+}
+
+.dsr__rail-item.is-active .dsr__rail-dot {
+  background: var(--color-violet);
+  box-shadow: inset 0 0 0 1px var(--color-violet), 0 0 14px 2px rgba(139, 124, 255, 0.6);
+  transform: scale(1.2);
+}
+
+/* Hovering a non-active row dims its label slightly, so the section you are
+   actually in stays the brightest thing on the rail. */
+.dsr__rail-item:not(.is-active) .dsr__rail-label {
+  color: var(--color-slate);
+}
+
+.dsr__section {
+  padding: 0 0 3.2rem;
+  scroll-margin-top: 1rem;
+}
+
+.dsr__section + .dsr__section {
+  padding-top: 2.6rem;
+  border-top: 1px solid rgba(35, 44, 71, 0.55);
+}
+
+.dsr__section-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.85rem;
+  margin-bottom: 1.4rem;
+}
+
+.dsr__section-code {
+  font-size: 0.7rem;
+  color: var(--color-violet);
+}
+
+.dsr__section-head h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.15rem, 0.95rem + 0.7vw, 1.55rem);
+  font-weight: var(--w-xbold);
+  letter-spacing: -0.02em;
+  color: var(--color-starlight);
+}
+
+/* --- Prose ---------------------------------------------------------------- */
+
+.dsr-prose {
+  margin: 0;
+  max-width: var(--measure, 62ch);
+  font-size: 1rem;
+  font-weight: var(--w-reg);
+  line-height: 1.72;
+  color: var(--color-slate);
+}
+
+/* --- Timeline ------------------------------------------------------------- */
+
+.dsr-timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 1.4rem;
+  border-left: 1px solid var(--color-panel-line);
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.dsr-entry {
+  position: relative;
+}
+
+/* The node on the thread. */
+.dsr-entry::before {
+  content: '';
+  position: absolute;
+  left: calc(-1.4rem - 4px);
+  top: 0.45rem;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-violet);
+  box-shadow: 0 0 12px 1px rgba(139, 124, 255, 0.7);
+}
+
+.dsr-entry__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.dsr-entry__head h4 {
+  margin: 0;
+  font-size: 1.02rem;
+  font-weight: var(--w-bold);
+  letter-spacing: -0.01em;
+  color: var(--color-starlight);
+}
+
+.dsr-entry__period {
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-slate-dim);
+  white-space: nowrap;
+}
+
+.dsr-entry__org {
+  margin: 0.25rem 0 0.8rem;
+  font-size: 0.85rem;
+  font-weight: var(--w-med);
+  color: var(--color-violet);
+}
+
+.dsr-points {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  max-width: var(--measure, 62ch);
+}
+
+.dsr-points li {
+  position: relative;
+  padding-left: 1rem;
+  font-size: 0.92rem;
+  line-height: 1.62;
+  color: var(--color-slate);
+}
+
+.dsr-points li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.62em;
+  width: 5px;
+  height: 1px;
+  background: var(--color-slate-dim);
+}
+
+/* --- Systems -------------------------------------------------------------- */
+
+.dsr-systems {
+  display: grid;
+  gap: 1rem;
+}
+
+.dsr-system {
+  position: relative;
+  padding: 1.5rem 1.6rem;
+  border: 1px solid var(--color-panel-line);
+  border-radius: var(--panel-radius);
+  background: #070a12;
+  overflow: hidden;
+}
+
+/* The project's colour, carried as a seam down the leading edge. */
+.dsr-system::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 2px;
+  height: 100%;
+  background: linear-gradient(180deg, var(--accent, var(--color-violet)), transparent 90%);
+}
+
+.dsr-system__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
+}
+
+.dsr-system__head h4 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: var(--w-bold);
+  letter-spacing: -0.015em;
+  color: var(--color-starlight);
+}
+
+.dsr-system__badge {
+  display: inline-block;
+  margin: 0 0 0.7rem;
+  padding: 0.2rem 0.55rem;
+  border: 1px solid var(--accent, var(--color-violet));
+  border-radius: var(--panel-radius);
+  font-family: var(--font-tech);
+  font-size: 0.58rem;
+  font-weight: var(--w-semi);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent, var(--color-violet));
+}
+
+.dsr-system__blurb {
+  margin: 0 0 1.1rem;
+  max-width: var(--measure, 62ch);
+  font-size: 0.92rem;
+  line-height: 1.65;
+  color: var(--color-slate);
+}
+
+.dsr-metrics {
+  margin: 0 0 1.1rem;
+  padding: 0.9rem 0;
+  border-top: 1px solid var(--color-panel-line);
+  border-bottom: 1px solid var(--color-panel-line);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
+  gap: 1rem;
+}
+
+.dsr-metrics div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.dsr-metrics dt {
+  font-size: 1.12rem;
+  font-weight: var(--w-bold);
+  color: var(--accent, var(--color-violet));
+  line-height: 1;
+}
+
+.dsr-metrics dd {
+  margin: 0;
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  color: var(--color-slate-dim);
+}
+
+/* --- Chips ---------------------------------------------------------------- */
+
+.dsr-chips {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.dsr-chips li {
+  padding: 0.26rem 0.6rem;
+  border: 1px solid var(--color-panel-line);
+  border-radius: var(--panel-radius);
+  font-family: var(--font-tech);
+  font-size: 0.68rem;
+  font-weight: var(--w-med);
+  color: var(--color-slate);
+}
+
+.dsr-orbit-link {
+  margin-top: 1.1rem;
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--accent, var(--color-violet));
+  border-radius: var(--panel-radius);
+  background: none;
+  color: var(--accent, var(--color-violet));
+  font-family: var(--font-tech);
+  font-size: 0.66rem;
+  font-weight: var(--w-semi);
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  transition: background 0.18s ease, color 0.18s ease;
+}
+
+.dsr-orbit-link:hover,
+.dsr-orbit-link:focus-visible {
+  background: var(--accent, var(--color-violet));
+  color: var(--color-void);
+}
+
+/* --- Stack ---------------------------------------------------------------- */
+
+.dsr-stack {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 1.6rem;
+}
+
+.dsr-stack__label {
+  margin: 0 0 0.6rem;
+  font-size: 0.58rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-violet);
+}
+
+/* --- Recognition ---------------------------------------------------------- */
+
+.dsr-awards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 1rem;
+}
+
+.dsr-awards li {
+  padding: 1.1rem 1.3rem;
+  border: 1px solid var(--color-panel-line);
+  border-radius: var(--panel-radius);
+  background: #070a12;
+}
+
+.dsr-award__title {
+  margin: 0 0 0.35rem;
+  font-size: 0.95rem;
+  font-weight: var(--w-bold);
+  color: var(--color-starlight);
+}
+
+.dsr-award__detail {
+  margin: 0;
+  max-width: var(--measure, 62ch);
+  font-size: 0.87rem;
+  line-height: 1.6;
+  color: var(--color-slate);
+}
+
+/* --- Foot ----------------------------------------------------------------- */
+
+.dsr__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding-top: 1.6rem;
+  border-top: 1px solid var(--color-panel-line);
+}
+
+.dsr__foot p {
+  margin: 0;
+  font-size: 0.62rem;
+  letter-spacing: 0.06em;
+  color: var(--color-slate-dim);
+}
+
+/* --- Responsive ----------------------------------------------------------- */
+
+/* The rail becomes a horizontal strip above the content. It keeps its job —
+   showing where you are and jumping you elsewhere — without stealing a third of
+   a phone's width from the reading column. */
+@media (max-width: 900px) {
+  .dsr__body {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.2rem;
+  }
+
+  /* The spine lies on its side: a row of bodies under the masthead, with the
+     travelled part filling left to right. Same reading, no width cost. */
+  .dsr__rail {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    margin: 0 -0.5rem;
+    padding: 0.7rem 0.5rem;
+    background: #05070d;
+  }
+
+  .dsr__rail ol {
+    flex-direction: row;
+    align-items: center;
+    gap: 0;
+    justify-content: space-between;
+    max-width: 22rem;
+  }
+
+  .dsr__rail ol::before,
+  .dsr__rail ol::after {
+    left: 0.6rem;
+    right: 0.6rem;
+    top: 50%;
+    bottom: auto;
+    width: auto;
+    height: 1px;
+  }
+
+  .dsr__rail ol::after {
+    transform-origin: left;
+    transform: scaleX(var(--progress, 0));
+  }
+
+  .dsr__rail ol li {
+    display: flex;
+  }
+
+  .dsr__rail-item {
+    width: auto;
+    padding: 0.35rem 0.5rem;
+    /* 44px in both axes. The dot is 9px across, so without a floor the target
+       is the dot plus a few pixels of padding — 25x20 measured on a 390px
+       screen, which a fingertip misses more often than it hits. The dots do
+       not move to pay for it: the row is justified space-between, so the extra
+       width comes out of the gaps rather than out of the spacing. */
+    min-width: 44px;
+    min-height: 44px;
+    justify-content: center;
+  }
+
+  /* On a touch screen there is no hover, so the label opens below the dot on
+     tap-and-hold or focus; the dot alone is the resting state. */
+  .dsr__rail-text {
+    left: 50%;
+    top: auto;
+    bottom: -2.1rem;
+    transform: translateX(-50%) translateY(-4px);
+  }
+
+  .dsr__rail-item:hover .dsr__rail-text,
+  .dsr__rail-item:focus-visible .dsr__rail-text {
+    transform: translateX(-50%);
+  }
+
+  /* The end dots sit at the edges of a 420px screen, so a label centred on them
+     hangs off the viewport. The first and last clamp to their own side instead
+     of centring — the standard edge case for any tooltip on a rail. */
+  .dsr__rail li:first-child .dsr__rail-text {
+    left: 0;
+    transform: translateX(0) translateY(-4px);
+  }
+  .dsr__rail li:first-child .dsr__rail-item:hover .dsr__rail-text,
+  .dsr__rail li:first-child .dsr__rail-item:focus-visible .dsr__rail-text {
+    transform: translateX(0);
+  }
+  .dsr__rail li:last-child .dsr__rail-text {
+    left: auto;
+    right: 0;
+    transform: translateX(0) translateY(-4px);
+  }
+  .dsr__rail li:last-child .dsr__rail-item:hover .dsr__rail-text,
+  .dsr__rail li:last-child .dsr__rail-item:focus-visible .dsr__rail-text {
+    transform: translateX(0);
+  }
+
+  .dsr__masthead {
+    flex-direction: column;
+  }
+
+  .dsr__actions {
+    align-items: flex-start;
+    width: 100%;
+    /* Stacked below the name here, so there is nothing to clear. */
+    padding-top: 0;
+  }
+
+  /* ...but the name itself now runs under the toggle, so it yields the corner. */
+  .dsr__masthead > div:first-child {
+    padding-right: 3.4rem;
+  }
+}
+
+@media (max-width: 520px) {
+  .dsr__stats {
+    grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
+  }
+  .dsr-system {
+    padding: 1.2rem 1.1rem;
+  }
+  .dsr__rail ol {
+    max-width: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dsr__scroll {
+    scroll-behavior: auto;
+  }
+}
+
+/* --- Entrance --------------------------------------------------------------
+   CSS, not a JS tween. The document opens over a live WebGL scene, and a tween
+   that shares the main thread with the renderer arrives late on exactly the
+   machines that can least afford to look broken. The compositor does not care
+   how busy the main thread is. */
+.dsr [data-rise] {
+  animation: dsr-rise 0.62s var(--ease-out) both;
+  animation-delay: calc(var(--rise, 0) * 80ms);
+}
+
+@keyframes dsr-rise {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dsr [data-rise] {
+    animation: none;
+  }
+}
+
+/* A quieter variant of the orbit link, for timeline entries: the systems cards
+   already carry the loud one, and two identical buttons a screen apart would
+   compete rather than rank. */
+.dsr-orbit-link--quiet {
+  margin-top: 0.9rem;
+  border-color: var(--color-panel-line);
+  color: var(--color-slate);
+}
+
+.dsr-orbit-link--quiet:hover,
+.dsr-orbit-link--quiet:focus-visible {
+  background: none;
+  border-color: var(--color-violet);
+  color: var(--color-starlight);
+}
+
+/* --- Touch targets ---------------------------------------------------------
+   Every control a finger has to find, given a 44px floor. These are measured
+   values, not a precaution: the return button came in at 38px tall and the
+   project links at 33px, both comfortably inside the range where a tap lands
+   next to the button rather than on it.
+
+   A floor rather than new padding, and only under a coarse pointer, so the
+   document's proportions on a desktop are exactly as they were. */
+@media (pointer: coarse) {
+  .dsr-return,
+  .dsr-orbit-link {
+    min-height: 44px;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .dsr-orbit-link {
+    display: inline-flex;
+  }
+}

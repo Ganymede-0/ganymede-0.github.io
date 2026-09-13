@@ -67,6 +67,10 @@ export const cvSections = [
       {
         role: 'Artificial Intelligence Engineer — COOP',
         org: 'Leap Networks Arabia',
+        // Links this entry to its body in the system, so the panel holding the
+        // completion certificate is reachable from the CV. Nothing on this site
+        // should be reachable only by clicking a moving 3D object.
+        projectId: 'leap-networks',
         period: 'Jun 2026 – Aug 2026',
         points: [
           'Built a Python/OpenCV ingestion pipeline processing raw CCTV footage into 800+ validated training frames, supplying the safety-monitoring models deployed for industrial clients.',

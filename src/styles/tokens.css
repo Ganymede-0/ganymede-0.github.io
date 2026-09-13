@@ -18,29 +18,51 @@
   --color-slate-dim: #545d70;   /* tertiary / disabled */
 
   /* --- Type -------------------------------------------------------------- */
-  /* Sora everywhere. One family, four roles — hierarchy comes from weight and
-     letter-spacing rather than from switching faces, which is what keeps a
-     dense technical UI reading as one instrument. */
-  --font-display: 'Sora', system-ui, 'Segoe UI', sans-serif;
-  --font-body: 'Sora', system-ui, 'Segoe UI', sans-serif;
-  --font-tech: 'Sora', system-ui, 'Segoe UI', sans-serif;
-  --font-mono: 'Sora', system-ui, 'Segoe UI', sans-serif;
+  /* ONE family, used across its whole weight range — see index.html.
+     Display, body and chrome are all the same face on purpose: hierarchy comes
+     from weight and letter-spacing, not from switching typefaces, which is what
+     lets a dense technical interface read as a single instrument.
 
-  /* Variable 100–800, so every step is a real interpolation — nothing is
-     synthesised. Sora runs slightly wide and dark, so the reading weight sits
-     at 300 rather than 400: at 400 long paragraphs on a dark background feel
-     heavy and the lines stop separating. */
-  --w-xbold: 700;  /* hero names, section titles */
-  --w-bold: 600;   /* buttons, sub-heads */
+     TO SWAP IN "Valve Collection" (or any other family): self-host its woff2,
+     @font-face it, and change the three stacks below. This is the only place in
+     the codebase that names an interface typeface. */
+  /* Display and chrome carry the technical voice; long-form prose does not.
+     A squared-off face is right for a label, a metric or a button and wrong for
+     six lines of a case study, so the reading face stays humanist. Standing in
+     for Rexlia — see index.html for why it is not Rexlia itself. */
+  --font-display: 'Oxanium', 'Outfit', system-ui, 'Segoe UI', sans-serif;
+  --font-tech: 'Oxanium', 'Outfit', system-ui, 'Segoe UI', sans-serif;
+  --font-body: 'Outfit', system-ui, 'Segoe UI', sans-serif;
+  /* There is no serif token any more. It existed to set the name in the face
+     the 3D title was rasterised from, back when that face was Instrument Serif.
+     The title is now baked artwork made from Rukyltronic at build time (see
+     scripts/build-title.mjs), and the name is set in the interface face like
+     every other piece of text, so the serif had no remaining user — it was only
+     costing every visitor a font download. Removed here and from the font
+     request in index.html together. */
+  /* The instrument register only: readouts that must align in columns. A
+     proportional face cannot do this job, whatever its weight range. */
+  --font-mono: 'Geist Mono', ui-monospace, 'Cascadia Mono', Consolas, monospace;
+
+  /* Geist is variable 100–900, so every step is a real interpolation — nothing
+     is synthesised. The reading weight sits at 300 rather than 400: on a dark
+     background at 400, long paragraphs feel heavy and the lines stop
+     separating. */
+  /* Deliberately top-light. The brief is a premium, elegant interface, and the
+     fastest way to lose that is to reach for bold: nothing here goes past 600,
+     headings sit at 500-600, and everything conversational sits at 200-300. */
+  --w-black: 600;  /* the heaviest thing in the interface */
+  --w-xbold: 600;  /* section titles, project names */
+  --w-bold: 500;   /* buttons, sub-heads */
   --w-semi: 500;   /* instrument labels, codes, status */
   --w-med: 400;    /* emphasis inside prose */
   --w-reg: 300;    /* reading material */
   --w-light: 200;  /* long-form / data logs — quieter, denser */
 
   /* --- Reading rhythm ------------------------------------------------------
-     Long-form settings, applied through .prose-copy (see ui.css). Sora's tall
-     x-height needs more leading than a default 1.5 to keep long measures from
-     packing together. */
+     Long-form settings, applied through .prose-copy (see ui.css). Light text
+     on a near-black ground needs more leading than a default 1.5 to keep long
+     measures from packing together. */
   --measure: 62ch;      /* max line length for body copy */
   --leading-copy: 1.75; /* line-height for paragraphs */
 
@@ -51,11 +73,31 @@
      spacing scales with the viewport instead of stepping at breakpoints. */
   --gutter: clamp(1rem, 2.1vw, 2.25rem);
 
+  /* --- The reserved corner -------------------------------------------------
+     The sound toggle is fixed in the top-right of EVERY view, including the
+     full-screen overlays. Any overlay that puts its own control up there has to
+     leave room for it, and the amount of room is declared once, here, rather
+     than guessed separately in three stylesheets. This is what stopped the
+     toggle from sitting on top of the walkthrough's close button. */
+  --toprail: 9.5rem;
+
   /* --- Elevation / glow -------------------------------------------------- */
   --glow-violet: 0 0 24px -6px rgba(139, 124, 255, 0.55);
   --glow-amber: 0 0 24px -6px rgba(217, 142, 74, 0.55);
   --hairline: rgba(255, 255, 255, 0.08);
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* The gradient the 3D title is filled with, as a CSS value. Same stops, same
+     order: warm at the star, cooling to violet at the edges. Declared here so
+     the 2D name and the 3D lettering cannot drift apart. */
+  --ink-starlit: linear-gradient(104deg, #fff3dc 0%, #ffd9a3 26%, #cdd2ff 62%, #9aa6f2 100%);
+
+  /* The name, in white and its shades only. The warm gradient above belongs to
+     the 3D lettering, which is an object in the scene and can afford colour;
+     the name is interface text and now sits in the same family as every other
+     label — starlight at the head, cooling by a few percent across the word so
+     it still catches the eye without introducing a second hue. */
+  --ink-starlight: linear-gradient(104deg, #ffffff 0%, #f2f4f8 46%, #d6dbe6 100%);
 }
 
 * {
@@ -85,36 +127,47 @@ body {
      elements in the scene carry more contrast against the vacuum. */
   background:
     radial-gradient(120% 90% at 50% 42%, #060b17 0%, #03050c 45%, #010205 100%);
-  /* The reticle IS the cursor — see .cursor-hud. */
-  cursor: none;
   color: var(--color-starlight);
   font-family: var(--font-body);
   font-weight: var(--w-reg);
-  /* NOT `overflow: hidden` here. The approach sequence scrolls the document,
-     and a blanket hidden on body clips it to a single viewport — the page
-     simply stops scrolling. The lock belongs only to the arrived state, where
-     it is applied as `body.is-system` in ui.css. */
+  /* The page-scroll lock lives in ui.css, beside the fixed .app it exists for. */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
 }
 
-/* `cursor` is inherited, but any element that sets its own value wins — and
-   every button and link in this project sets `cursor: pointer`. The result was
-   a reticle that vanished and handed back the OS arrow the moment the pointer
-   crossed anything interactive, which reads as the custom cursor being broken
-   at random. Interactive elements are exactly where the reticle's engage state
-   is supposed to be visible, so they must not opt out of it. */
-a,
-button,
-input,
-select,
-textarea,
-label,
-summary,
-[role='button'],
-[tabindex] {
-  cursor: none;
+/* --- The reticle IS the cursor ---------------------------------------------
+   THE BUG THIS FIXES
+   `cursor` is inherited, but any element that sets its own value wins, and a
+   class selector out-specifies an element selector. The previous rule listed
+   elements (`a, button, input, ...`), so every component rule that sets
+   `cursor: pointer` on a CLASS beat it — fourteen of them across ui.css and
+   dossier.css. Measured in the browser before this change: `.cv-nav__item` and
+   its three child spans all resolved to `pointer`, so the OS arrow reappeared
+   on top of the reticle over every CV link. That is the "two cursors" report.
+
+   WHY `!important` IS CORRECT HERE
+   Normally a smell, but "the reticle is the only cursor on a fine pointer" is
+   an invariant of the design rather than a component-level preference. The
+   alternative — deleting fourteen `cursor: pointer` declarations — leaves the
+   invariant unenforced, and the next component to add one silently breaks it
+   again. One authoritative rule is the honest encoding.
+
+   WHY IT IS GATED ON A CLASS
+   `.reticle-active` is added by CursorHud only once it has mounted AND the
+   device actually has a fine pointer. So:
+     - if the bundle fails or JS is off, the rule never applies and the visitor
+       keeps a native cursor instead of having no cursor at all;
+     - on touch, CursorHud never adds it, so nothing is hidden;
+     - plug in a mouse mid-session and the class appears (CursorHud watches the
+       media query), so the reticle takes over without a reload.
+   The old rule hid the cursor unconditionally on `body`, which meant a JS
+   failure left the page with no pointer at all. */
+body.reticle-active,
+body.reticle-active *,
+body.reticle-active *::before,
+body.reticle-active *::after {
+  cursor: none !important;
 }
 
 button {
@@ -141,11 +194,11 @@ button {
   }
 }
 
-/* The "instrument" register: tracked, semibold, tabular figures so numeric
-   readouts stay column-aligned without a monospaced face. */
+/* The "instrument" register. Genuinely monospaced (Geist Mono), so column
+   alignment is structural rather than a tabular-figures workaround. Light
+   tracking only: a monospaced face already carries its own rhythm. */
 .mono {
   font-family: var(--font-mono);
   font-weight: var(--w-semi);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.02em;
 }

@@ -1,7 +1,8 @@
 import { useEffect, useRef } from 'react'
 import gsap from 'gsap'
 import { getProjectById } from '../data/projects'
-import { getMediaForProject } from '../data/rahaMedia'
+import { getMediaForProject } from '../data/projectMedia'
+import CertificateCard from './CertificateCard'
 import { useNavigationStore } from '../state/navigationStore'
 import { useReducedMotion } from '../scene/useReducedMotion'
 
@@ -61,47 +62,66 @@ function OrbitRule({ color, reducedMotion }) {
 function MissionMedia({ media, accent }) {
   const openDossier = useNavigationStore((s) => s.openDossier)
 
-  // A handful of frames from across the reel rather than the first few, so the
-  // teaser advertises the range of the platform instead of its login page.
-  const teaser = ['res-scan1', 'res-metrics1', 'res-analyze-top', 'res-results']
+  // Which frames to advertise is a property of the PROJECT, not of this
+  // component. It used to be four Raha screenshot ids written into the JSX,
+  // which is why no other body could ever show evidence — see projectMedia.js.
+  const teaser = (media.teaser ?? [])
     .map((id) => media.reel.find((item) => item.id === id))
     .filter(Boolean)
+
+  const heroIndex = Math.max(0, media.reel.findIndex((i) => i.type === media.hero.kind))
 
   return (
     <section className="mission-media" style={{ '--accent': accent }}>
       <button
         type="button"
         className="mission-media__hero"
-        onClick={() => openDossier(0)}
-        aria-label="Play the Raha platform demo"
+        onClick={() => openDossier(heroIndex)}
+        aria-label={`${media.hero.label} — open`}
       >
-        <img src={media.video.poster} alt="" />
+        <img src={media.hero.poster} alt="" />
         <span className="mission-media__scrim" aria-hidden="true" />
         <span className="mission-media__play" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-            <path d="M8 5v14l11-7z" fill="currentColor" />
-          </svg>
+          {media.hero.kind === 'video' ? (
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+              <path d="M8 5v14l11-7z" fill="currentColor" />
+            </svg>
+          ) : (
+            <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true">
+              <path
+                d="M11 3a8 8 0 1 1 0 16 8 8 0 0 1 0-16Zm10 18-5.2-5.2"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.9"
+                strokeLinecap="round"
+              />
+            </svg>
+          )}
         </span>
-        <span className="mission-media__label mono">Platform demo</span>
+        <span className="mission-media__label mono">{media.hero.label}</span>
       </button>
 
-      <div className="mission-media__teaser">
-        {teaser.map((shot) => (
-          <button
-            type="button"
-            key={shot.id}
-            className="mission-media__chip"
-            onClick={() => openDossier(media.reel.indexOf(shot))}
-            aria-label={shot.caption}
-          >
-            <img src={shot.thumb} alt="" loading="lazy" decoding="async" />
-          </button>
-        ))}
-      </div>
+      {teaser.length > 1 && (
+        <div className="mission-media__teaser">
+          {teaser.map((shot) => (
+            <button
+              type="button"
+              key={shot.id}
+              className="mission-media__chip"
+              onClick={() => openDossier(media.reel.indexOf(shot))}
+              aria-label={shot.caption}
+            >
+              <img src={shot.thumb} alt="" loading="lazy" decoding="async" />
+            </button>
+          ))}
+        </div>
+      )}
 
       <button type="button" className="mission-media__open" onClick={() => openDossier(0)}>
-        <span>Open the walkthrough</span>
-        <span className="mission-media__count mono">{media.shotCount} screens</span>
+        <span>{media.openLabel}</span>
+        <span className="mission-media__count mono">
+          {media.shotCount} {media.countLabel}
+        </span>
       </button>
     </section>
   )
@@ -170,6 +190,11 @@ export default function MissionPanel() {
       </header>
 
       <div className="mission-panel__body">
+        {/* Any body carrying a certificate shows the document itself, at a
+            size it can actually be read at. */}
+        {project.certificate && (
+          <CertificateCard certificate={project.certificate} accent={project.color} />
+        )}
         {media && <MissionMedia media={media} accent={project.color} />}
 
         <p className="mission-panel__summary">{project.summary}</p>

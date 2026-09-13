@@ -26,6 +26,12 @@ dist-ssr
 *.pem
 *.key
 
+# The original certificate PDF. The site serves the rendered WebP copies in
+# public/media/leap/ — the 5.5 MB original is never loaded by the page, so
+# committing it would publish a personal document at full resolution for no
+# benefit. Keep it locally; the deployable copies are in the repository.
+/docs/Certificate_of_COOP_LEAP.pdf
+
 # Source media for the Raha walkthrough. scripts/build-media.mjs reads this
 # from the repo root and writes the deployable copy to public/media/raha/, so
 # committing it too would put the same 13 MB in the repository twice.

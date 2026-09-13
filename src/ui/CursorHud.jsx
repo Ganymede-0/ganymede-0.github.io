@@ -1,10 +1,18 @@
 import { useEffect, useRef } from 'react'
 
 // A terminal reticle that trails the pointer: a damped ring with live
-// normalized coordinates, flaring open over anything interactive. The native
-// cursor stays — this is an instrument overlay, not a replacement, so nothing
-// about usability is gambled for the aesthetic. Desktop-pointer only; the CSS
-// removes it entirely on touch devices.
+// normalized coordinates, flaring open over anything interactive. It REPLACES
+// the native cursor on fine pointers — the header used to claim the opposite
+// while the loop below assumed replacement, and the CSS did too. Desktop
+// pointers only; touch devices never see it and keep their native behaviour.
+//
+// OWNERSHIP OF THE NATIVE CURSOR
+// Hiding it is this component's job, not a blanket CSS rule. The `cursor: none`
+// declaration in tokens.css is gated on `body.reticle-active`, which is added
+// here only after the reticle is actually mounted on a device with a fine
+// pointer. If this module never runs, the visitor keeps a normal cursor rather
+// than being left with none — which is what the old unconditional
+// `body { cursor: none }` did on any JS failure.
 //
 // Implementation notes: everything runs outside React state — mousemove writes
 // to refs, one rAF loop applies transforms directly. Zero re-renders.
@@ -12,6 +20,20 @@ export default function CursorHud() {
   const rootRef = useRef()
   const coordsRef = useRef()
   const dotRef = useRef()
+
+  // Own the native cursor only where the reticle can actually stand in for it.
+  // Watched rather than read once: a tablet with a keyboard case, or a laptop
+  // the visitor plugs a mouse into, changes this mid-session.
+  useEffect(() => {
+    const mq = window.matchMedia('(hover: hover) and (pointer: fine)')
+    const apply = () => document.body.classList.toggle('reticle-active', mq.matches)
+    apply()
+    mq.addEventListener('change', apply)
+    return () => {
+      mq.removeEventListener('change', apply)
+      document.body.classList.remove('reticle-active')
+    }
+  }, [])
 
   useEffect(() => {
     const root = rootRef.current

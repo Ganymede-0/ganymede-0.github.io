@@ -88,9 +88,10 @@ of a fake atmosphere. Scattering here is gated by solar incidence, with a
 Rayleigh phase function and a Mie forward lobe, so the halo wraps the lit limb
 and dies behind the terminator.
 
-**Nothing is reachable only by clicking a moving 3D object.** The résumé
-navigation is a complete, keyboard-accessible path to every part of the story —
-the 3D system is the richer way in, never the only one.
+**Nothing is reachable only by clicking a moving 3D object.** A skip link sits
+first in the tab order and opens the CV directly; from there the section rail
+reaches every part of the document, and each project links out to its own
+repository. The 3D system is the richer way in, never the only one.
 
 ---
 

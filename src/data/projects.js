@@ -99,9 +99,16 @@ export const projects = [
       '7B-parameter LLM that generates severity-classified, actionable advisories, validated ' +
       'at 0.92 BERTScore against expert-written ground-truth reports.',
     stack: ['PyTorch', 'Hugging Face Transformers', 'LLM fine-tuning (7B)', 'Docker'],
+    // Verified against the repository's own results_summary.json and README —
+    // not rounded, not recalled. MAE is the headline because on C-MAPSS FD001 it
+    // is the number every published method is compared on, and the transformer
+    // beating the LSTM baseline on the same data is the claim this project can
+    // actually defend.
     metrics: [
-      { label: 'C-MAPSS ranking', value: 'Top 15%' },
-      { label: 'Advisory BERTScore', value: '0.92' },
+      { label: 'RUL error (MAE, cycles)', value: '9.74' },
+      { label: 'vs LSTM baseline', value: '10.71' },
+      { label: 'Advisory BERTScore-F1', value: '0.9172' },
+      { label: 'Encoder latency', value: '0.006 s' },
     ],
     competencies: [
       'Predictive maintenance',
@@ -111,6 +118,10 @@ export const projects = [
     ],
     links: [
       { label: 'Repository', url: 'https://github.com/Ganymede-0/Bayan-Predictive-Maintenance-AI' },
+      {
+        label: 'NASA C-MAPSS dataset',
+        url: 'https://www.kaggle.com/datasets/behrad3d/nasa-cmaps',
+      },
     ],
   },
 
@@ -145,9 +156,12 @@ export const projects = [
       'baseline with dynamic CAGR mathematics, deliberately covering the temporal ' +
       'extrapolation gap that tree ensembles cannot span on their own.',
     stack: ['CatBoost', 'Scikit-learn', 'Streamlit', 'Pandas', 'Plotly'],
+    // From the repository README: the deal count is the one that surprises
+    // people, so it goes next to the accuracy rather than in a paragraph.
     metrics: [
       { label: 'Model R²', value: '0.794' },
-      { label: 'Market history modelled', value: '5+ yrs' },
+      { label: 'Rental deals modelled', value: '1M+' },
+      { label: 'Market history', value: '2019–2024' },
     ],
     competencies: [
       'Tabular ML & regression',
@@ -156,7 +170,18 @@ export const projects = [
       'Decision support',
     ],
     links: [
+      // The deployed app first: a reviewer can use this in ten seconds, which is
+      // worth more than any screenshot of it.
+      {
+        label: 'Live dashboard',
+        url: 'https://sharqiyah-rentals-dashboard-sf8t3e6zhiwpeynryplk2w.streamlit.app/',
+        primary: true,
+      },
       { label: 'Repository', url: 'https://github.com/Ganymede-0/sharqiyah-rentals-dashboard' },
+      {
+        label: 'Open data source',
+        url: 'https://open.data.gov.sa/en/datasets/view/a108f1ed-0091-4264-bb82-71a4ad0989f8/resources',
+      },
     ],
   },
 
@@ -204,6 +229,16 @@ export const projects = [
       'Industrial safety systems',
       'Full-stack integration',
     ],
+    // The real document, rendered from docs/Certificate_of_COOP_LEAP.pdf.
+    // `offset` places the plaque clear of the station's solar arrays.
+    certificate: {
+      src: 'media/leap/certificate.webp',
+      full: 'media/leap/certificate-full.webp',
+      thumb: 'media/leap/certificate-thumb.webp',
+      label: 'Certificate of Internship — Leap Networks Arabia',
+      issued: '20 August 2026',
+      offset: [0, 1.9, 0],
+    },
     links: [],
   },
 ];
