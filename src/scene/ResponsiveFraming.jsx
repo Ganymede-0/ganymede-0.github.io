@@ -28,11 +28,11 @@ export default function ResponsiveFraming() {
       camera.updateProjectionMatrix()
     }
 
-    // During the approach the flight recomputes the camera from scroll every
-    // frame, and does so in terms of the framing distance updated just above —
-    // so it is already responsive. Writing the final framing position here as
-    // well would fight it for one frame on every resize, which on a phone means
-    // every time the address bar collapses.
+    // Outside the resting overview something else owns the camera — a focus
+    // flight, or the warp — and it reads the framing updated just above when
+    // it next needs it. Writing the camera here as well would fight it for a
+    // frame on every resize, which on a phone means every time the address bar
+    // collapses.
     if (stage === 'system' && view === 'overview') {
       camera.position.copy(framing.position)
       camera.lookAt(0, 0, 0)

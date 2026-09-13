@@ -1,14 +1,11 @@
 import { useNavigationStore } from '../state/navigationStore'
 
 // -----------------------------------------------------------------------------
-// The light that covers the cut.
+// The light that covers the warp's cut.
 //
-// Both transitions — falling into the star, and bursting back out through the
-// wormhole — end on a frame of pure white. That frame is where the camera is
-// actually teleported: from the surface of the photosphere to a pocket of deep
-// space on the way in, and back to the system framing on the way out. Neither
-// jump is ever seen, because at the moment it happens there is nothing on
-// screen but light.
+// The fall into the star ends on a frame of pure white, and that frame is where
+// the CV opens. It is never seen happening, because at the moment it does there
+// is nothing on screen but light.
 //
 // It is DOM rather than a quad in the scene, for two reasons. A full-viewport
 // additive plane would still be tone-mapped and bloomed on its way through the
@@ -24,30 +21,21 @@ import { useNavigationStore } from '../state/navigationStore'
 export default function StarGate() {
   const stage = useNavigationStore((s) => s.stage)
 
-  // The gate exists only while a transition is in progress.
-  //
-  // 'system' is a resting state and is never entered through a flash: the dive
-  // is covered on arrival at 'prologue', and the way back is covered during
-  // 'emerging', which has already faded the light off by the time it completes.
-  // Rendering here would fire the fade-from-white a second time on landing —
-  // and on a cold load it would open the site with an unexplained white flash.
-  if (stage === 'system') return null
+  // Only the way IN is covered. 'system' is a resting state — rendering there
+  // would open the site with an unexplained flash. And 'emerging' needs no
+  // cover: the camera starts at the photosphere, which already fills the frame
+  // with light, and pulling back out of it IS the reveal. A white flash on top
+  // would punish the visitor for clicking "Back to orbit".
+  if (stage !== 'diving' && stage !== 'cv') return null
 
-  // 'in'  — ramping up: the star swallowing the frame, or the wormhole peaking.
-  // 'out' — after a teleport: opaque, then fading off. In 'prologue' that
-  //         reveals the story space; in 'emerging' it burns off over the top of
-  //         the camera pulling back out of the star, so the system opens out of
-  //         the light rather than appearing once the light has gone.
-  const phase = stage === 'diving' || stage === 'returning' ? 'in' : 'out'
+  // 'in'  — ramping up while the star swallows the frame.
+  // 'out' — opaque, then fading off to reveal the CV.
+  const phase = stage === 'diving' ? 'in' : 'out'
 
   return (
-    // Keyed on stage so each transition remounts the element and its animation
-    // restarts cleanly from zero. Without the key a re-render mid-transition
-    // would leave the old animation running against the new class.
-    <div
-      key={stage}
-      className={`star-gate star-gate--${phase} star-gate--${stage}`}
-      aria-hidden="true"
-    />
+    // Keyed on stage so each phase remounts the element and its animation
+    // restarts cleanly from zero. Without the key the change of class would
+    // leave the old animation running against the new one.
+    <div key={stage} className={`star-gate star-gate--${phase}`} aria-hidden="true" />
   )
 }

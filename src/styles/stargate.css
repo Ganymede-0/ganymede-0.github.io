@@ -1,0 +1,115 @@
+/* ===========================================================================
+   STAR GATE — the light that covers the warp's cut.
+   ---------------------------------------------------------------------------
+   The warp into the star ends on a frame of pure white, and that frame is where
+   the CV takes over. It is never seen happening, because at the moment it does
+   there is nothing on screen but light. See StarGate.jsx.
+
+   THE EDGE BUG THIS IS BUILT TO AVOID
+   The first version scaled a single element carrying
+   `radial-gradient(58% 58% at 50% 50%, ..., transparent 100%)`. In that syntax
+   58% is the ellipse RADIUS, and a radius of 58% of the width overshoots the
+   50% needed to reach the edge — so the gradient was still roughly a third
+   opaque AT the element's boundary, where it was then cut off perfectly
+   straight. While the element animated up from scale(0.35) that boundary sat
+   inside the viewport, drawing a hard-edged warm rectangle across the scene.
+
+   The rule that prevents it: any gradient that must disappear before its own
+   box ends has to use `closest-side`, which puts the 100% stop exactly at the
+   nearest edge. Everything past it is the final stop — transparent — so there
+   is nothing left to cut.
+
+   Two layers, because one cannot do both jobs:
+     ::before  a bloom that GROWS. Scaled, so it must be edge-safe.
+     ::after   a flat wash that whites out the corners a circular bloom can
+               never reach. Never scaled, so it has no edge to betray.
+   =========================================================================== */
+
+.star-gate {
+  position: fixed;
+  inset: 0;
+  /* Above everything, including the drei <Html> layer that carries planet
+     labels — otherwise labels would float over a white screen. */
+  z-index: 90;
+  pointer-events: none;
+}
+
+.star-gate::before,
+.star-gate::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+
+/* The bloom. `closest-side` guarantees it is fully transparent by the time it
+   reaches its own edge, at every scale. */
+.star-gate::before {
+  background: radial-gradient(
+    circle closest-side at 50% 50%,
+    #fffdf7 0%,
+    #ffeccb 30%,
+    #ffc178 58%,
+    rgba(255, 150, 70, 0) 100%
+  );
+  will-change: transform, opacity;
+}
+
+/* The wash. Flat, full-viewport, so its edges are the screen's edges. */
+.star-gate::after {
+  background: #fff6e8;
+  opacity: 0;
+}
+
+/* --- Ramping up: the star swallowing the frame ----------------------------
+   1.4s is the partner of the dive's tween length in StarDive.jsx — the two
+   must stay in step, or the camera arrives before (or after) the light. */
+.star-gate--in::before {
+  animation: gate-bloom-in 1.4s cubic-bezier(0.65, 0, 0.85, 0.35) both;
+}
+.star-gate--in::after {
+  animation: gate-wash-in 1.4s cubic-bezier(0.8, 0, 0.9, 0.5) both;
+}
+
+@keyframes gate-bloom-in {
+  from { opacity: 0; transform: scale(0.35); }
+  to   { opacity: 1; transform: scale(3.4); }
+}
+
+@keyframes gate-wash-in {
+  /* Held back so the corners only fill at the very end — the light has to look
+     like it is spreading OUT of the star, not like a white sheet fading up. */
+  0%   { opacity: 0; }
+  55%  { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+/* --- Landing: opaque, then off, revealing the CV --------------------------- */
+.star-gate--out::before {
+  animation: gate-bloom-out 1.2s var(--ease-out) both;
+}
+.star-gate--out::after {
+  animation: gate-wash-out 0.9s var(--ease-out) both;
+}
+
+@keyframes gate-bloom-out {
+  from { opacity: 1; transform: scale(3.4); }
+  to   { opacity: 0; transform: scale(5); }
+}
+
+@keyframes gate-wash-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Keep the flash — it is what makes the cut legible — but drop the growth. */
+  .star-gate--in::before,
+  .star-gate--out::before { animation: none; opacity: 0; }
+  .star-gate--in::after  { animation: gate-wash-plain-in 0.25s linear both; }
+  .star-gate--out::after { animation: gate-wash-out 0.3s linear both; }
+}
+
+@keyframes gate-wash-plain-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}

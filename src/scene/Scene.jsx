@@ -16,7 +16,8 @@ import { Vector2, NoToneMapping } from 'three'
 import Starfield from './Starfield'
 import Nebula from './Nebula'
 import Sun from './Sun'
-import SunBeacon from './SunBeacon'
+import StartTitle from './StartTitle'
+import Rocket from './Rocket'
 import DustField from './DustField'
 import OrbitSkater from './OrbitSkater'
 import ParallaxRig from './ParallaxRig'
@@ -24,7 +25,6 @@ import Planet from './Planet'
 import Station from './Station'
 import OrbitPath from './OrbitPath'
 import CameraRig from './CameraRig'
-import ApproachRig from './ApproachRig'
 import StarDive from './StarDive'
 import Wormhole from './Wormhole'
 import ResponsiveFraming from './ResponsiveFraming'
@@ -32,6 +32,18 @@ import Lighting from './Lighting'
 import { projects, CATEGORY } from '../data/projects'
 import { useNavigationStore } from '../state/navigationStore'
 import { useReducedMotion } from './useReducedMotion'
+
+// The one door into the CV, shared by the star and the title behind it.
+// Reads the store directly rather than through a hook so the handler is a
+// stable module function. warpToCv itself ignores clicks that land mid-
+// transition, and the sound follows the state change rather than the click —
+// see AudioDirector.
+function startWarp() {
+  useNavigationStore.getState().warpToCv()
+}
+
+// Constant uniform, allocated once — see the note at <ChromaticAberration>.
+const CA_OFFSET = new Vector2(0.0006, 0.0009)
 
 // Set to true once a rigged, animated character exists at public/models/skater.glb.
 // Left off by default so the app never requests a file that isn't there.
@@ -48,13 +60,30 @@ export default function Scene() {
   const [dpr, setDpr] = useState(isSmall ? 1 : 1.35)
   // The Sun's photosphere mesh — the GodRays light source.
   const [sunMesh, setSunMesh] = useState(null)
+  // The counters inside "here", measured from the rendered glyphs once the
+  // title has rasterised. Until then there is no ship.
+  const [sign, setSign] = useState(null)
   const activeId = useNavigationStore((s) => s.activeId)
   const returnToOverview = useNavigationStore((s) => s.returnToOverview)
-  const dismissOnboarding = useNavigationStore((s) => s.dismissOnboarding)
-  const startApproach = useNavigationStore((s) => s.startApproach)
   const setSunHovered = useNavigationStore((s) => s.setSunHovered)
   const view = useNavigationStore((s) => s.view)
   const reducedMotion = useReducedMotion()
+
+  // THE SINGLE BIGGEST PERFORMANCE WIN IN THE APP.
+  //
+  // The CV and the walkthrough are opaque and full-screen: while either is open
+  // the scene is completely invisible. It was still rendering every frame —
+  // six custom shaders, god rays at 30 samples, bloom, grain and tone mapping,
+  // at up to 1.35x device pixels — against a document the visitor is trying to
+  // read and scroll. That is where the reported lag inside the CV was coming
+  // from: the reader was competing with a full 3D render for the GPU and the
+  // compositor on every scroll frame.
+  //
+  // 'never' halts the render loop outright. Nothing needs a frame here: the
+  // camera is parked, and the transitions that DO need frames (the dive, the
+  // rise back out) only run while no panel is open. R3F resumes cleanly the
+  // moment this flips back.
+  const covered = useNavigationStore((s) => s.cvOpen || s.dossierOpen)
 
   const onDecline = useCallback(() => setDpr(isSmall ? 0.8 : 1), [isSmall])
   // Recovery must be symmetric. An earlier build only ever restored dpr while
@@ -64,6 +93,7 @@ export default function Scene() {
 
   return (
     <Canvas
+      frameloop={covered ? 'never' : 'always'}
       dpr={dpr}
       // far: the nebula is a BackSide sphere of radius 200, so the furthest
       // thing that must stay visible is its far inner wall — (camera distance
@@ -83,11 +113,6 @@ export default function Scene() {
         toneMapping: NoToneMapping,
       }}
       onPointerMissed={() => {
-        // Touching the scene at all proves the visitor has found it, so the
-        // arrival cue has done its job and should get out of the way. Without
-        // this, someone who ignores the cue and goes straight to dragging keeps
-        // it on screen — and the body labels stay suppressed behind it.
-        dismissOnboarding()
         // Clicking empty space is a natural "back" — recruiters won't hunt
         // for a button, and the explicit button is still there for anyone
         // who does.
@@ -132,12 +157,12 @@ export default function Scene() {
           />
         </ParallaxRig>
 
-        <Sun
-          onReady={setSunMesh}
-          onStartApproach={startApproach}
-          onSunHover={setSunHovered}
-        />
-        <SunBeacon />
+        <Sun onReady={setSunMesh} onStart={startWarp} onSunHover={setSunHovered} />
+        {/* The title behind the star — the same door as the star itself. It
+            hands back the world positions of the counters inside "here", which
+            is what the ship threads. */}
+        <StartTitle onStart={startWarp} onHover={setSunHovered} onHoles={setSign} />
+        <Rocket sign={sign} />
 
         {projects.map((project) => (
           <OrbitPath
@@ -171,19 +196,16 @@ export default function Scene() {
       </Suspense>
 
       <ResponsiveFraming />
-      {/* ApproachRig must precede CameraRig and Wormhole: all three run at the
-          default frame priority, so they execute in mount order, and the other
-          two need the camera this one writes to be current for the frame.
-          Ordering is the whole mechanism here — R3F disables its automatic
-          render as soon as any useFrame declares a non-zero priority, so
-          sequencing by priority number is not an option. */}
-      <ApproachRig />
-      {/* Owns the camera during the two authored transitions — the fall into
-          the star, and the wormhole burst back out. */}
+      {/* StarDive must precede Wormhole: both run at the default frame
+          priority, so they execute in mount order, and the wormhole rides the
+          camera StarDive has just moved. Ordering is the whole mechanism here —
+          R3F disables its automatic render as soon as any useFrame declares a
+          non-zero priority, so sequencing by priority number is not an option.
+          StarDive owns the camera for the warp in and the rise back out. */}
       <StarDive />
-      {/* The wormhole. Always mounted and driven entirely by scroll-derived
-          warp, so at rest it costs one draw call of fully-transparent geometry
-          and never changes the composer's shape. */}
+      {/* The warp's star streaks. Always mounted, and hidden outright
+          (`visible = false`) at rest, so outside the warp it costs nothing and
+          never changes the composer's shape. */}
       <Wormhole count={isSmall ? 380 : 900} reducedMotion={reducedMotion} />
       <CameraRig />
 
@@ -205,7 +227,15 @@ export default function Scene() {
         {sunMesh ? (
           <GodRays
             sun={sunMesh}
-            samples={30}
+            /* The most expensive thing in the chain: a full-screen pass that
+               walks this many texture samples per pixel, every frame. Halving
+               it on a phone is the largest single saving available there, and
+               at the shaft weight used below the difference is not visible —
+               these are soft gradients, not detail. Read once at mount from a
+               value that never changes, so the shader is compiled exactly once;
+               varying this at runtime is the chain-rebuild the note above
+               warns about. */
+            samples={isSmall ? 16 : 30}
             density={0.82}
             decay={0.9}
             /* weight/exposure were 0.35/0.34 — the shafts stopped reading as
@@ -229,7 +259,12 @@ export default function Scene() {
           radius={0.62}
         />
         <ChromaticAberration
-          offset={new Vector2(0.0006, 0.0009)}
+          /* Hoisted to module scope. A fresh Vector2 here is a new prop
+             identity on every Scene render, and Scene re-renders whenever the
+             dpr monitor adjusts resolution — which hands the effect a changed
+             uniform object during exactly the frames it is trying to recover
+             performance. */
+          offset={CA_OFFSET}
           radialModulation={false}
         />
         <Vignette offset={0.24} darkness={0.72} />

@@ -1,4 +1,4 @@
-import { useRef, useEffect, useMemo } from 'react'
+import { useRef, useEffect, useMemo, useState, useCallback } from 'react'
 import { useThree, useFrame } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
 import gsap from 'gsap'
@@ -11,6 +11,21 @@ import { useReducedMotion } from './useReducedMotion'
 export default function CameraRig() {
   const controlsRef = useRef()
   const tweenRef = useRef(null)
+
+  // The live OrbitControls instance, as STATE as well as a ref — and that is a
+  // bug fix, not a style choice. Coming back out of the warp with a project
+  // selected ("View in orbit" from the CV) lands `stage: 'system'` and
+  // `view: 'transitioning'` in the same commit. OrbitControls only mounts in
+  // that commit too, so when the flight effect below ran, the ref was still
+  // null: it returned early, nothing ever re-ran it, and the app sat in
+  // 'transitioning' forever — no panel, no flight, no further input. Making
+  // the instance a dependency re-runs the effect the moment the controls exist.
+  // The callback is stable, so it fires only on mount and unmount.
+  const [controls, setControls] = useState(null)
+  const bindControls = useCallback((instance) => {
+    controlsRef.current = instance
+    setControls(instance)
+  }, [])
   const { camera, size } = useThree()
 
   const stage = useNavigationStore((s) => s.stage)
@@ -37,7 +52,6 @@ export default function CameraRig() {
   useEffect(() => {
     if (stage !== 'system') return
     if (view !== 'transitioning') return
-    const controls = controlsRef.current
     if (!controls) return
 
     // Hand the camera over to GSAP for the duration of the flight.
@@ -111,23 +125,22 @@ export default function CameraRig() {
     return () => {
       tl.kill()
     }
-  }, [stage, view, activeId, camera, arrivedAtBody, arrivedAtOverview, reducedMotion])
+  }, [stage, view, activeId, controls, camera, arrivedAtBody, arrivedAtOverview, reducedMotion])
 
-  // During the approach the prologue owns the camera outright, and OrbitControls
-  // must not merely be disabled — it must not exist. Its update() clamps the
-  // camera between minDistance and maxDistance on every call regardless of
-  // `enabled`, and the flight legitimately starts several times further out
-  // than maxDistance. Leaving it mounted would silently drag the camera back in
-  // and flatten the entire approach.
+  // During the warp StarDive owns the camera outright, and OrbitControls must
+  // not merely be disabled — it must not exist. Its update() clamps the camera
+  // between minDistance and maxDistance on every call regardless of `enabled`,
+  // and the dive parks the camera at 2.62 units, inside minDistance. Leaving it
+  // mounted would silently shove the camera back out of the star.
   //
-  // Remounting on arrival is free and lands correctly: a fresh OrbitControls
-  // targets the origin, which is exactly OVERVIEW_TARGET and exactly where the
-  // approach was already looking.
+  // Remounting on the way back is free and lands correctly: a fresh
+  // OrbitControls targets the origin, which is exactly OVERVIEW_TARGET and
+  // exactly where the rise out of the star was already looking.
   if (stage !== 'system') return null
 
   return (
     <OrbitControls
-      ref={controlsRef}
+      ref={bindControls}
       enableDamping
       dampingFactor={0.06}
       enablePan={false}
@@ -137,8 +150,14 @@ export default function CameraRig() {
       minPolarAngle={Math.PI * 0.08}
       rotateSpeed={0.5}
       zoomSpeed={0.7}
-      autoRotate={view === 'overview'}
-      autoRotateSpeed={reducedMotion ? 0 : 0.22}
+      /* Auto-rotation is OFF, and that is a consequence of the title being a
+         fixed object in world space rather than something that turns to face
+         the camera. A slow automatic orbit would carry every visitor round to
+         the back of the sign — where the type reads mirrored — within about
+         fifteen seconds, without them asking for it. The scene is not static
+         without it: the planets are still in orbit and the ship is still
+         flying. The view now only changes when someone chooses to change it. */
+      autoRotate={false}
     />
   )
 }

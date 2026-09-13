@@ -1,10 +1,11 @@
 import { useMemo, useRef, useEffect } from 'react'
 import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
-import { approach } from './approach'
+import { warp } from './warp'
 
 // -----------------------------------------------------------------------------
-// The wormhole — the transition from the approach sequence into the system.
+// The wormhole — star streaks rushing past as the camera falls into the Sun on
+// the way to the CV.
 //
 // Built as real geometry travelling past the camera rather than a screen-space
 // post effect, for two reasons. First, the existing post chain is deliberately
@@ -20,9 +21,8 @@ import { approach } from './approach'
 // with a slow shutter, and it is why the effect reads as speed rather than as
 // "lines appeared".
 //
-// Everything is driven from `approach.warp`, which is a pure function of scroll
-// position — so scrolling back up genuinely reverses the wormhole rather than
-// replaying it.
+// Everything is driven from `warp.level`, which StarDive ramps over the length
+// of the dive — see warp.js.
 // -----------------------------------------------------------------------------
 
 const DEPTH = 80
@@ -131,14 +131,12 @@ export default function Wormhole({ count = 900, reducedMotion = false }) {
     const g = groupRef.current
     if (!g) return
 
-    // Ease toward the target rather than snapping to it: a trackpad flick
-    // produces very coarse scroll deltas, and following them literally makes
-    // the streaks stutter. `approach.warp` is written by scroll during the
-    // story and by the return burst on the way out, so it is read
-    // unconditionally here.
+    // Ease toward the target rather than snapping to it, so the streaks swell
+    // and die away instead of switching on and off. Reduced motion caps the
+    // effect: a gentle drift of light rather than a rush.
     uniforms.uWarp.value = THREE.MathUtils.damp(
       uniforms.uWarp.value,
-      reducedMotion ? Math.min(approach.warp, 0.25) : approach.warp,
+      reducedMotion ? Math.min(warp.level, 0.25) : warp.level,
       6,
       delta
     )
@@ -158,9 +156,9 @@ export default function Wormhole({ count = 900, reducedMotion = false }) {
 
     // Ride with the camera so the tunnel is always dead ahead. This mirrors the
     // camera rather than parenting to it, because R3F's default camera is not
-    // guaranteed to be part of the scene graph. ApproachRig and StarDive are
-    // mounted before this component, so whichever of them owns the camera has
-    // already written it for this frame.
+    // guaranteed to be part of the scene graph. StarDive is mounted before this
+    // component, so when it owns the camera it has already written it for this
+    // frame.
     g.position.copy(state.camera.position)
     g.quaternion.copy(state.camera.quaternion)
 

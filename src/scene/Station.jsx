@@ -7,6 +7,9 @@ import { labelDistanceFactor } from './framing'
 import { useNavigationStore, useLabelsVisible } from '../state/navigationStore'
 
 const _scale = new THREE.Vector3()
+// Hoisted for the same reason as _scale: a Color built inline in JSX is a new
+// object on every render of this component.
+const STATION_EMISSIVE = new THREE.Color('#20293a')
 
 // Experience isn't a planet — it's built, not discovered. So it's a station:
 // a hard-edged assembly of a hull, a truss, and two solar arrays, rendered
@@ -82,7 +85,7 @@ export default function Station({ project }) {
               metalness={0.85}
               roughness={0.32}
               envMapIntensity={1.4}
-              emissive={new THREE.Color('#20293a')}
+              emissive={STATION_EMISSIVE}
               emissiveIntensity={0.5}
               transparent
               opacity={opacity}
