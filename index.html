@@ -17,6 +17,72 @@
     />
     <title>Sarah Altheeb · Applied AI Engineer</title>
 
+    <!-- LINK PREVIEWS — what WhatsApp, LinkedIn, Slack and iMessage show when
+         this address is pasted.
+         =====================================================================
+         WHY A COMMITTED IMAGE AND NOT THE LIVE PAGE
+         None of these crawlers run JavaScript. They fetch the HTML, read the
+         tags below, and stop — which for a site whose entire content is drawn
+         by WebGL means that without a real image file they have literally
+         nothing to show. media/social/preview.jpg is a capture of this scene at
+         card size, so the preview is the actual product rather than a logo.
+
+         THE CONSTRAINTS THIS FILE IS BUILT TO
+         - Absolute https URLs. A relative og:image is silently dropped by every
+           one of these crawlers; this is the single most common reason a
+           preview comes back as a bare grey link.
+         - 1200x630 at 2x = 2400x1260. That is the 1.91:1 frame every platform
+           crops its card from, so nothing important lands outside it.
+         - 250 KB. WhatsApp gives up on images much past a few hundred KB and
+           falls back to text, which is why this is a JPEG at quality 82 rather
+           than the PNG it was captured as (2.8 MB).
+         - JPEG, not WebP. LinkedIn and several WhatsApp builds still will not
+           render a WebP card.
+
+         AFTER CHANGING THE IMAGE: both LinkedIn and WhatsApp cache a card for
+         days. LinkedIn's Post Inspector re-fetches on demand; WhatsApp is most
+         easily refreshed by appending ?v=2 to the shared link. -->
+    <link rel="canonical" href="https://ganymede-0.github.io/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Sarah Altheeb" />
+    <meta property="og:url" content="https://ganymede-0.github.io/" />
+    <meta property="og:title" content="Sarah Altheeb · Applied AI Engineer" />
+    <meta
+      property="og:description"
+      content="An orbital system of applied AI work — 3D medical imaging, predictive maintenance, and market analytics. Explore the projects, or open the full CV."
+    />
+    <meta
+      property="og:image"
+      content="https://ganymede-0.github.io/media/social/preview.jpg"
+    />
+    <meta
+      property="og:image:secure_url"
+      content="https://ganymede-0.github.io/media/social/preview.jpg"
+    />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="2400" />
+    <meta property="og:image:height" content="1260" />
+    <meta
+      property="og:image:alt"
+      content="A star with four bodies in orbit around it, labelled Raha, Bayan, Sharqiyah and Experience, under the name Sarah Altheeb."
+    />
+    <meta property="og:locale" content="en_US" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Sarah Altheeb · Applied AI Engineer" />
+    <meta
+      name="twitter:description"
+      content="An orbital system of applied AI work — 3D medical imaging, predictive maintenance, and market analytics. Explore the projects, or open the full CV."
+    />
+    <meta
+      name="twitter:image"
+      content="https://ganymede-0.github.io/media/social/preview.jpg"
+    />
+    <meta
+      name="twitter:image:alt"
+      content="A star with four bodies in orbit around it, under the name Sarah Altheeb."
+    />
+
     <!-- TYPE — three faces, each with exactly one job.
 
          Oxanium (SIL OFL, variable 200-800) is the interface: the name, every
@@ -35,13 +101,13 @@
          self-host its woff2 and change the stacks at the top of tokens.css —
          nothing else in the codebase names a typeface.
 
-         The 3D title is NOT a webfont. It is Rukyltronic, rasterised to flat
-         artwork on a developer machine by scripts/build-title.mjs; the licence
-         covers that and would not cover serving the font. Nothing about the
-         title is downloaded as type, which is also why the serif this file used
-         to request is gone: it was the old title's source face and had no other
-         user, so it was a font download every visitor paid for and none of them
-         ever saw. -->
+         THERE IS NO TYPE IN THE 3D SCENE AT ALL. The star used to carry a sign
+         reading "Start Here", which went through two source faces and a
+         build-time rasteriser to avoid ever serving a licensed font. It is now
+         three chevrons pointing at the star (see SunCue.jsx) — a mark, not a
+         word — so the whole question is gone, along with the serif this file
+         used to request for it: a font download every visitor paid for and
+         none of them ever saw. -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
