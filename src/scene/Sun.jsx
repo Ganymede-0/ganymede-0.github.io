@@ -224,10 +224,9 @@ export default function Sun({ onReady, onStart, onSunHover }) {
       {/* Photosphere — opaque, depth-writing, the GodRays source.
           It is also the door into the CV: the star is the one body that
           represents Sarah rather than a project, so clicking it warps through
-          to her full CV. The title behind it is the same door (StartTitle);
-          both are targets because a visitor told "start here" will aim at
-          whichever glowing thing their eye lands on. Being opaque and depth-
-          writing is also what lets it eclipse that title. */}
+          to her full CV. The three chevrons above it (SunCue) point at this
+          mesh and open the same door, so whichever of the two a visitor aims
+          at, they arrive in the same place. */}
       <mesh
         ref={coreRef}
         geometry={coreGeo}

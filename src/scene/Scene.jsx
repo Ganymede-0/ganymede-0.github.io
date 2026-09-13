@@ -16,7 +16,7 @@ import { Vector2, NoToneMapping } from 'three'
 import Starfield from './Starfield'
 import Nebula from './Nebula'
 import Sun from './Sun'
-import StartTitle from './StartTitle'
+import SunCue from './SunCue'
 import Rocket from './Rocket'
 import DustField from './DustField'
 import OrbitSkater from './OrbitSkater'
@@ -33,7 +33,7 @@ import { projects, CATEGORY } from '../data/projects'
 import { useNavigationStore } from '../state/navigationStore'
 import { useReducedMotion } from './useReducedMotion'
 
-// The one door into the CV, shared by the star and the title behind it.
+// The one door into the CV, shared by the star and the chevrons above it.
 // Reads the store directly rather than through a hook so the handler is a
 // stable module function. warpToCv itself ignores clicks that land mid-
 // transition, and the sound follows the state change rather than the click —
@@ -60,9 +60,6 @@ export default function Scene() {
   const [dpr, setDpr] = useState(isSmall ? 1 : 1.35)
   // The Sun's photosphere mesh — the GodRays light source.
   const [sunMesh, setSunMesh] = useState(null)
-  // The counters inside "here", measured from the rendered glyphs once the
-  // title has rasterised. Until then there is no ship.
-  const [sign, setSign] = useState(null)
   const activeId = useNavigationStore((s) => s.activeId)
   const returnToOverview = useNavigationStore((s) => s.returnToOverview)
   const setSunHovered = useNavigationStore((s) => s.setSunHovered)
@@ -158,11 +155,13 @@ export default function Scene() {
         </ParallaxRig>
 
         <Sun onReady={setSunMesh} onStart={startWarp} onSunHover={setSunHovered} />
-        {/* The title behind the star — the same door as the star itself. It
-            hands back the world positions of the counters inside "here", which
-            is what the ship threads. */}
-        <StartTitle onStart={startWarp} onHover={setSunHovered} onHoles={setSign} />
-        <Rocket sign={sign} />
+        {/* Three chevrons above the star, pointing at it. They replaced the
+            "Start Here" sign that used to stand behind it: same invitation,
+            no lettering, and roughly a thousandth of the screen area. Clicking
+            them is the same door as clicking the star, and hovering them lights
+            the star — which is how they say what they are pointing at. */}
+        <SunCue onStart={startWarp} onHover={setSunHovered} />
+        <Rocket />
 
         {projects.map((project) => (
           <OrbitPath
