@@ -12,6 +12,8 @@
 // recent). Reorder freely — it's just data.
 // -----------------------------------------------------------------------------
 
+import { leapLetterTranscript } from './letters';
+
 export const CATEGORY = {
   PLANET: 'planet',
   STATION: 'station',
@@ -238,6 +240,26 @@ export const projects = [
       label: 'Certificate of Internship — Leap Networks Arabia',
       issued: '20 August 2026',
       offset: [0, 1.9, 0],
+    },
+    // The recommendation letter from the internship supervisor, shown right
+    // after the certificate. The source PDF is private and gitignored; these
+    // are rasters of it with the author's email address redacted — see
+    // scripts/build-letter.py. `width` / `height` are the full image's pixel
+    // size, which the reader needs before the image has loaded so the page can
+    // be laid out, and zoomed, without a jump when the pixels arrive.
+    letter: {
+      preview: 'media/leap/letter.webp',
+      full: 'media/leap/letter-full.webp',
+      width: 2481,
+      height: 3507,
+      label: 'Letter of recommendation',
+      author: 'Aqsa Ahmed',
+      role: 'Lead AI Software Engineer',
+      org: 'Leap Networks Arabia',
+      // Verbatim from the letter. Quoted, never paraphrased: the value of a
+      // reference is that the words are someone else's.
+      excerpt: 'Having directly observed her work, I can recommend Sarah, without reservation.',
+      transcript: leapLetterTranscript,
     },
     links: [],
   },

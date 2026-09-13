@@ -66,6 +66,11 @@ export default function AudioDirector() {
       // The product walkthrough.
       if (s.dossierOpen && !p.dossierOpen) return playOpen()
       if (!s.dossierOpen && p.dossierOpen) return playClose()
+
+      // The recommendation letter — the same pair, because it is the same kind
+      // of gesture: a document opened over a panel, and put back.
+      if (s.letterOpen && !p.letterOpen) return playOpen()
+      if (!s.letterOpen && p.letterOpen) return playClose()
     })
   }, [])
 

@@ -32,6 +32,11 @@ dist-ssr
 # benefit. Keep it locally; the deployable copies are in the repository.
 /docs/Certificate_of_COOP_LEAP.pdf
 
+# The recommendation letter. A private document: the PDF never enters the
+# repository. The site shows rasters of it made by scripts/build-letter.py, with
+# the author's email address redacted from the page before it is rendered.
+/docs/Letter of Recommendation*.pdf
+
 # Source media for the Raha walkthrough. scripts/build-media.mjs reads this
 # from the repo root and writes the deployable copy to public/media/raha/, so
 # committing it too would put the same 13 MB in the repository twice.

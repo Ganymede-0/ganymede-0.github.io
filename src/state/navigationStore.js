@@ -42,6 +42,10 @@ export const useNavigationStore = create((set, get) => ({
   dossierOpen: false,
   dossierIndex: 0,
 
+  // The recommendation-letter reader: a full-screen overlay over the mission
+  // panel, like the walkthrough, and closed the same way.
+  letterOpen: false,
+
   // --- Sound ----------------------------------------------------------------
   // Off is remembered across visits. Defaulting to ON is defensible only because
   // nothing here plays unprompted: every sound in the app is the direct answer
@@ -102,6 +106,7 @@ export const useNavigationStore = create((set, get) => ({
       activeId: null,
       cvOpen: false,
       dossierOpen: false,
+      letterOpen: false,
       sunHovered: false,
     })
   },
@@ -156,7 +161,9 @@ export const useNavigationStore = create((set, get) => ({
 
   returnToOverview: () => {
     if (get().view === 'transitioning') return
-    set({ view: 'transitioning', activeId: null })
+    // The letter belongs to the panel being closed; it must not survive it and
+    // reopen over whichever body the visitor picks next.
+    set({ view: 'transitioning', activeId: null, letterOpen: false })
   },
 
   arrivedAtOverview: () => set({ view: 'overview', activeId: null }),
@@ -167,6 +174,9 @@ export const useNavigationStore = create((set, get) => ({
   openDossier: (index = 0) => set({ dossierOpen: true, dossierIndex: index }),
   setDossierIndex: (index) => set({ dossierIndex: index }),
   closeDossier: () => set({ dossierOpen: false }),
+
+  openLetter: () => set({ letterOpen: true }),
+  closeLetter: () => set({ letterOpen: false }),
 
   openCv: (section = null) => set({ cvOpen: true, cvSection: section }),
   setCvSection: (section) => set({ cvSection: section }),

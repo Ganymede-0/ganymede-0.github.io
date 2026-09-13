@@ -68,9 +68,9 @@ export default function Scene() {
 
   // THE SINGLE BIGGEST PERFORMANCE WIN IN THE APP.
   //
-  // The CV and the walkthrough are opaque and full-screen: while either is open
-  // the scene is completely invisible. It was still rendering every frame —
-  // six custom shaders, god rays at 30 samples, bloom, grain and tone mapping,
+  // The CV, the walkthrough and the letter reader are opaque and full-screen:
+  // while any of them is open the scene is completely invisible. It was still
+  // rendering every frame — six custom shaders, god rays at 30 samples, bloom, grain and tone mapping,
   // at up to 1.35x device pixels — against a document the visitor is trying to
   // read and scroll. That is where the reported lag inside the CV was coming
   // from: the reader was competing with a full 3D render for the GPU and the
@@ -80,7 +80,7 @@ export default function Scene() {
   // camera is parked, and the transitions that DO need frames (the dive, the
   // rise back out) only run while no panel is open. R3F resumes cleanly the
   // moment this flips back.
-  const covered = useNavigationStore((s) => s.cvOpen || s.dossierOpen)
+  const covered = useNavigationStore((s) => s.cvOpen || s.dossierOpen || s.letterOpen)
 
   const onDecline = useCallback(() => setDpr(isSmall ? 0.8 : 1), [isSmall])
   // Recovery must be symmetric. An earlier build only ever restored dpr while

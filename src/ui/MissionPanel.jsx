@@ -3,6 +3,7 @@ import gsap from 'gsap'
 import { getProjectById } from '../data/projects'
 import { getMediaForProject } from '../data/projectMedia'
 import CertificateCard from './CertificateCard'
+import LetterCard from './LetterCard'
 import { useNavigationStore } from '../state/navigationStore'
 import { useReducedMotion } from '../scene/useReducedMotion'
 
@@ -132,6 +133,7 @@ export default function MissionPanel() {
   const view = useNavigationStore((s) => s.view)
   const returnToOverview = useNavigationStore((s) => s.returnToOverview)
   const dossierOpen = useNavigationStore((s) => s.dossierOpen)
+  const letterOpen = useNavigationStore((s) => s.letterOpen)
   const reducedMotion = useReducedMotion()
   const panelRef = useRef()
 
@@ -154,17 +156,17 @@ export default function MissionPanel() {
     return () => tween.kill()
   }, [open, activeId, reducedMotion])
 
-  // Escape closes the panel — unless the walkthrough is over it, in which case
-  // Escape belongs to the walkthrough. The dossier also stops propagation in
-  // the capture phase; this guard states the precedence rather than relying on
-  // listener ordering to imply it.
+  // Escape closes the panel — unless the walkthrough or the letter is over it,
+  // in which case Escape belongs to that overlay. Both overlays also stop
+  // propagation in the capture phase; this guard states the precedence rather
+  // than relying on listener ordering to imply it.
   useEffect(() => {
     const onKey = (e) => {
-      if (e.key === 'Escape' && open && !dossierOpen) returnToOverview()
+      if (e.key === 'Escape' && open && !dossierOpen && !letterOpen) returnToOverview()
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [open, dossierOpen, returnToOverview])
+  }, [open, dossierOpen, letterOpen, returnToOverview])
 
   if (!open) return null
 
@@ -195,6 +197,9 @@ export default function MissionPanel() {
         {project.certificate && (
           <CertificateCard certificate={project.certificate} accent={project.color} />
         )}
+        {/* The recommendation letter, straight after the certificate: the
+            certificate says the internship happened, the letter says how. */}
+        {project.letter && <LetterCard letter={project.letter} accent={project.color} />}
         {media && <MissionMedia media={media} accent={project.color} />}
 
         <p className="mission-panel__summary">{project.summary}</p>

@@ -1,0 +1,487 @@
+/* ===========================================================================
+   THE RECOMMENDATION LETTER — the card in the Experience panel, and the
+   full-screen reader it opens.
+   ---------------------------------------------------------------------------
+   Its own stylesheet so that nothing in here can reach the walkthrough or the
+   CV, and nothing in those can reach in. Every selector is under .letter or
+   .reader.
+   =========================================================================== */
+
+/* --- The card ------------------------------------------------------------- */
+
+.letter {
+  margin: 0 0 1.9rem;
+}
+
+/* The top of the page — letterhead and opening paragraphs — fading out into
+   the panel. Cropped rather than shown whole: at panel width a full A4 page is
+   a grey rectangle of unreadable text, while the top third is recognisably a
+   letter on company paper, which is all this preview has to say. */
+.letter__page {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  padding: 0;
+  border: 1px solid var(--color-panel-line);
+  border-radius: var(--panel-radius);
+  background: #f7f7f5;
+  overflow: hidden;
+  cursor: zoom-in;
+  transition: border-color 0.22s var(--ease-out), box-shadow 0.22s var(--ease-out);
+}
+
+.letter__page img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: auto;
+  /* Held back at rest, like the certificate, so a white page sits IN the dark
+     panel instead of glaring out of it. */
+  opacity: 0.86;
+  transform-origin: 50% 0;
+  transition: opacity 0.3s var(--ease-out), transform 0.6s var(--ease-out);
+}
+
+/* The page fades into the panel ground, so the preview reads as "more below"
+   rather than as a picture cut off at an arbitrary line. */
+.letter__fade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(5, 8, 15, 0) 38%,
+    rgba(5, 8, 15, 0.55) 70%,
+    rgba(5, 8, 15, 0.94) 100%
+  );
+  pointer-events: none;
+}
+
+.letter__open {
+  position: absolute;
+  left: 50%;
+  bottom: 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 0.9rem;
+  border: 1px solid color-mix(in srgb, var(--accent, var(--color-violet)) 60%, transparent);
+  border-radius: 999px;
+  background: rgba(5, 7, 13, 0.82);
+  color: var(--color-starlight);
+  font-family: var(--font-tech);
+  font-size: 0.68rem;
+  font-weight: var(--w-semi);
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  transform: translateX(-50%);
+  transition: background 0.22s var(--ease-out), border-color 0.22s var(--ease-out),
+    color 0.22s var(--ease-out);
+}
+
+.letter__open svg {
+  color: var(--accent, var(--color-violet));
+  transition: color 0.22s var(--ease-out);
+}
+
+.letter__page:hover,
+.letter__page:focus-visible {
+  border-color: var(--accent, var(--color-violet));
+  box-shadow: 0 0 34px -12px var(--accent, var(--color-violet));
+}
+
+/* A slow, slight lean in toward the page — the image is the hover feedback,
+   as it is on the certificate above it. */
+.letter__page:hover img,
+.letter__page:focus-visible img {
+  opacity: 1;
+  transform: scale(1.025);
+}
+
+.letter__page:hover .letter__open,
+.letter__page:focus-visible .letter__open {
+  background: var(--accent, var(--color-violet));
+  border-color: var(--accent, var(--color-violet));
+  color: var(--color-void);
+}
+
+.letter__page:hover .letter__open svg,
+.letter__page:focus-visible .letter__open svg {
+  color: currentColor;
+}
+
+/* The quote. The supervisor's words, verbatim, set as the most readable thing
+   in the card: an evaluation reads faster in a sentence than in a scan. */
+.letter__quote {
+  position: relative;
+  margin: 1.1rem 0 0;
+  padding: 0 0 0 1rem;
+  border-left: 2px solid var(--accent, var(--color-violet));
+}
+
+.letter__quote blockquote {
+  margin: 0;
+}
+
+.letter__quote p {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 0.98rem;
+  font-weight: var(--w-reg);
+  line-height: 1.55;
+  color: var(--color-starlight);
+  text-wrap: pretty;
+}
+
+/* Typographic quotation marks as generated content, so the data stays the
+   plain sentence and the marks cannot end up doubled or missing. */
+.letter__quote p::before { content: '\201C'; }
+.letter__quote p::after  { content: '\201D'; }
+
+.letter__quote figcaption {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.2rem 0.55rem;
+  margin-top: 0.6rem;
+}
+
+.letter__author {
+  font-family: var(--font-tech);
+  font-size: 0.74rem;
+  font-weight: var(--w-semi);
+  letter-spacing: 0.02em;
+  color: var(--color-starlight);
+}
+
+.letter__role {
+  font-family: var(--font-tech);
+  font-size: 0.66rem;
+  letter-spacing: 0.03em;
+  color: var(--color-slate);
+}
+
+/* --- The reader ----------------------------------------------------------- */
+
+/* Opaque, like the walkthrough and the CV: a page of black-on-white text must
+   not have a starfield showing through it. Above the mission panel (and the
+   walkthrough's layer), below the sound toggle (70) and the reticle. */
+.reader {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  background:
+    radial-gradient(90% 60% at 50% 0%, rgba(139, 124, 255, 0.08) 0%, rgba(1, 2, 6, 0) 60%),
+    var(--color-void);
+  animation: reader-in 0.32s var(--ease-out) both;
+}
+
+@keyframes reader-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.reader__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: calc(var(--gutter) + var(--safe-t, 0px)) var(--gutter) 0.9rem;
+  padding-left: calc(var(--gutter) + var(--safe-l, 0px));
+  /* The sound toggle owns the top-right corner in every view. */
+  padding-right: var(--toprail);
+  border-bottom: 1px solid var(--color-panel-line);
+}
+
+.reader__id {
+  min-width: 0;
+}
+
+.reader__eyebrow {
+  display: block;
+  margin-bottom: 0.4rem;
+  font-size: 0.6rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent, var(--color-violet));
+}
+
+.reader__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.15rem, 0.95rem + 0.8vw, 1.6rem);
+  font-weight: var(--w-med);
+  line-height: 1.1;
+  color: var(--color-starlight);
+}
+
+.reader__role {
+  margin: 0.25rem 0 0;
+  font-family: var(--font-tech);
+  font-size: 0.72rem;
+  color: var(--color-slate);
+  /* On a phone the line breaks; balancing it breaks at the separator instead of
+     leaving "Arabia" alone on a line of its own. */
+  text-wrap: balance;
+}
+
+.reader__close {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid var(--color-panel-line);
+  border-radius: var(--panel-radius);
+  background: none;
+  color: var(--color-slate);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: color 0.18s ease, border-color 0.18s ease;
+}
+
+.reader__close:focus-visible {
+  color: var(--color-starlight);
+  border-color: var(--color-starlight);
+}
+
+.reader__esc {
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+/* The scroll area. `touch-action: none` hands every touch to the reader's own
+   pan and pinch — without it a pinch would zoom the entire site. The gutter is
+   reserved so a scrollbar appearing at some zoom level cannot change the fit
+   width and shift the page sideways under the pointer. */
+.reader__stage {
+  position: relative;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  cursor: grab;
+  outline: none;
+}
+
+.reader__stage:active {
+  cursor: grabbing;
+}
+
+.reader__stage:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--color-violet);
+}
+
+.reader__stage::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.reader__stage::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16) padding-box;
+}
+
+.reader__stage::-webkit-scrollbar-track,
+.reader__stage::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Sized from script — see LetterReader. */
+.reader__canvas {
+  position: relative;
+}
+
+/* The sheet of paper. A soft, deep shadow lifts it off the dark ground the way
+   a page lifts off a desk; that shadow is most of what makes it look like a
+   document rather than a screenshot. */
+.reader__page {
+  position: absolute;
+  left: 0;
+  top: 0;
+  background: #fbfbf9;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.05) inset,
+    0 18px 60px -18px rgba(0, 0, 0, 0.85),
+    0 0 0 1px rgba(255, 255, 255, 0.06);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.reader__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+
+/* Until the full page arrives the preview stands in, softened just enough that
+   nobody mistakes it for the readable version. */
+.reader__img--preview {
+  filter: blur(0.6px);
+}
+
+.reader__img--full {
+  opacity: 0;
+  transition: opacity 0.35s var(--ease-out);
+}
+
+.reader__page.is-loaded .reader__img--full {
+  opacity: 1;
+}
+
+.reader__page.is-loaded .reader__img--preview {
+  visibility: hidden;
+  transition: visibility 0s 0.35s;
+}
+
+/* The zoom control — floating over the page, bottom centre, where a thumb
+   reaches it on a phone and where it never covers the letterhead. */
+.reader__tools {
+  position: fixed;
+  left: 50%;
+  bottom: calc(1.1rem + var(--safe-b, 0px));
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.3rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  background: rgba(8, 11, 20, 0.86);
+  box-shadow: 0 12px 40px -12px rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transform: translateX(-50%);
+}
+
+.reader__tools button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.35rem;
+  height: 2.35rem;
+  padding: 0 0.6rem;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: var(--color-starlight);
+  font-family: var(--font-tech);
+  font-size: 0.72rem;
+  font-weight: var(--w-semi);
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: background 0.18s ease, color 0.18s ease, opacity 0.18s ease;
+}
+
+.reader__tools button:focus-visible {
+  background: rgba(139, 124, 255, 0.18);
+}
+
+.reader__tools button:disabled {
+  opacity: 0.32;
+  cursor: default;
+}
+
+.reader__zoom {
+  min-width: 3.4rem;
+  text-align: center;
+  font-size: 0.7rem;
+  color: var(--color-slate);
+}
+
+.reader__sep {
+  width: 1px;
+  height: 1.2rem;
+  margin: 0 0.2rem;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* Hover styles only where a hover exists. On a touchscreen a tapped button
+   otherwise keeps its hover fill — "sticky hover" — until the next tap lands
+   somewhere else, which made Fit look pressed after it had done its job. */
+@media (hover: hover) {
+  .reader__close:hover {
+    color: var(--color-starlight);
+    border-color: var(--color-starlight);
+  }
+
+  .reader__tools button:hover:not(:disabled) {
+    background: rgba(139, 124, 255, 0.18);
+  }
+}
+
+/* Visually hidden, still read aloud. */
+.reader__transcript {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* --- Phones --------------------------------------------------------------- */
+
+@media (max-width: 640px) {
+  .reader__head {
+    padding-bottom: 0.7rem;
+  }
+
+  .reader__role {
+    font-size: 0.66rem;
+  }
+
+  .letter__quote p {
+    font-size: 0.92rem;
+  }
+}
+
+/* A finger needs 44px. */
+@media (pointer: coarse) {
+  /* No scrollbar to reserve room for. The stable gutter exists for mouse
+     users; on a touchscreen it was an invisible 10px strip on the right that
+     pushed the fitted page visibly off centre (12px margin left, 22px right). */
+  .reader__stage {
+    scrollbar-gutter: auto;
+    scrollbar-width: none;
+  }
+
+  .reader__stage::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+  }
+
+  .reader__close {
+    min-height: 44px;
+  }
+
+  .reader__tools button {
+    min-width: 44px;
+    height: 44px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reader {
+    animation: none;
+  }
+
+  .letter__page:hover img,
+  .letter__page:focus-visible img {
+    transform: none;
+  }
+}

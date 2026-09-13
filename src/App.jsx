@@ -4,6 +4,7 @@ import Hud from './ui/Hud'
 import StarGate from './ui/StarGate'
 import MissionPanel from './ui/MissionPanel'
 import MediaDossier from './ui/MediaDossier'
+import LetterReader from './ui/LetterReader'
 import CvDossier from './ui/CvDossier'
 import CursorHud from './ui/CursorHud'
 import SoundToggle from './ui/SoundToggle'
@@ -14,6 +15,7 @@ import './styles/ui.css'
 import './styles/stargate.css'
 import './styles/dossier-cv.css'
 import './styles/dossier.css'
+import './styles/letter.css'
 
 // The canvas is a single persistent scene beneath everything. It is never
 // unmounted or remounted — the warp into the star and back out only changes who
@@ -39,6 +41,9 @@ export default function App() {
             reason CvPanel is: .overlay is its own stacking context, so anything
             that must rise above the CV panel has to be a sibling of it. */}
         <MediaDossier />
+        {/* The recommendation letter. Same layer and same reason as the
+            walkthrough: it has to rise above the mission panel it opens from. */}
+        <LetterReader />
       </div>
 
       {/* The light that covers the warp's cut — see StarGate. */}
